@@ -1,0 +1,5 @@
+.env
+node_modules
+db/query.js
+test.js
+getToken.js
