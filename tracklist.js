@@ -1,6 +1,7 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
 dotenv.config();
+import { sendMessage } from './telegram/sendTelegramMessage.js';
 
 
 export async function addShowToTrakt(title, year) {
@@ -24,12 +25,14 @@ export async function addShowToTrakt(title, year) {
 
     if (response.data.added.shows > 0) {
       console.log(`✅ Added to ShowOther: ${title}`);
+      await sendMessage(`✅ Added to ShowOther: ${title}`)
     } else {
       console.log(`⚠️ Already exists: ${title}`);
     }
 
   } catch (error) {
     console.error("❌ Trakt Show Error:", error.response?.data || error.message);
+    await sendMessage("❌ Trakt Show Error:")
   }
 }
 
