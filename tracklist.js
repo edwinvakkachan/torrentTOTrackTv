@@ -4,48 +4,65 @@ dotenv.config();
 
 
 export async function addShowToTrakt(title, year) {
-  await axios.post(
-    "https://api.trakt.tv/sync/watchlist",
-    {
-      shows: [
-        {
-          title,
-          year
+  try {
+    const response = await axios.post(
+      "https://api.trakt.tv/users/wreath1553/lists/showother/items",
+      {
+        shows: [{ title, year }]
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "trakt-api-version": "2",
+          "trakt-api-key": process.env.TRAKT_CLIENT_ID,
+          "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
         }
-      ]
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
-        "trakt-api-version": "2",
-        "trakt-api-key": process.env.TRAKT_CLIENT_ID,
-        "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
       }
+    );
+
+    console.log("Trakt Response:", response.data);
+
+    if (response.data.added.shows > 0) {
+      console.log(`✅ Added to ShowOther: ${title}`);
+    } else {
+      console.log(`⚠️ Already exists: ${title}`);
     }
-  );
+
+  } catch (error) {
+    console.error("❌ Trakt Show Error:", error.response?.data || error.message);
+  }
 }
 
 
+
 export async function addMovieToTrakt(title, year) {
-  await axios.post(
-    "https://api.trakt.tv/sync/watchlist",
-    {
-      movies: [
-        {
-          title,
-          year
+  try {
+    const response = await axios.post(
+      "https://api.trakt.tv/users/wreath1553/lists/movie-malayalam/items",
+      {
+        movies: [{ title, year }]
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "trakt-api-version": "2",
+          "trakt-api-key": process.env.TRAKT_CLIENT_ID,
+          "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
         }
-      ]
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
-        "trakt-api-version": "2",
-        "trakt-api-key": process.env.TRAKT_CLIENT_ID,
-        "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
       }
+    );
+
+    console.log("Trakt Response:", response.data);
+
+    if (response.data.added.movies > 0) {
+      console.log(`✅ Added to Movie malayalam: ${title}`);
+    } else {
+      console.log(`⚠️ Already exists: ${title}`);
     }
-  );
+
+  } catch (error) {
+    console.error("❌ Trakt Error:", error.response?.data || error.message);
+  }
 }
 
 export async function parseTitle(rawName) {
