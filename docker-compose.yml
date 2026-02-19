@@ -1,9 +1,9 @@
 version: "3.8"
 
 services:
-  tamilrockerstorrentcleanup:
+  torrenttotraktv:
     build: .
-    container_name: tamilrockerstorrentcleanup
+    container_name: torrenttotraktv
     restart: no
     environment:
       DATABASE_URL: ${DATABASE_URL}
@@ -12,6 +12,9 @@ services:
       QBITIP: ${QBITIP}
       QBITUSER: ${QBITUSER}
       QBITPASS: ${QBITPASS}
+      TRAKT_CLIENT_ID: ${TRAKT_CLIENT_ID}
+      TRAKT_TOKEN: ${TRAKT_TOKEN}
+
    
 
 
