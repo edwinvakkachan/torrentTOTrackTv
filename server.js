@@ -23,14 +23,14 @@ async function processTodayTag() {
 
     if (parsed.type === "movie") {
       console.log(`🎬 Movie: ${parsed.title} (${parsed.year})`);
-      await sendMessage(`🎬 Movie: ${parsed.title}`)
+      await sendMessage(`✅ Found 🎬 Movie: ${parsed.title}`)
       await delay(2000)
      await addMovieToTrakt(parsed.title, parsed.year);
     }
 
     if (parsed.type === "show") {
       console.log(`📺 Show: ${parsed.title} (${parsed.year})`);
-      await sendMessage(`📺 Show: ${parsed.title}`)
+      await sendMessage(`✅ Found 📺 Show: ${parsed.title}`)
       await delay(2000)
       await addShowToTrakt(parsed.title, parsed.year);
     }
