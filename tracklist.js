@@ -26,8 +26,8 @@ export async function addShowToTrakt(title, year) {
     const { added, existing, not_found } = response.data;
 
     if (added.shows > 0) {
-      console.log(`✅ Added to ShowOther: ${title}`);
-      await sendMessage(`✅ Added to ShowOther: ${title}`);
+      console.log(`➕ Added to ShowOther: ${title}`);
+      await sendMessage(`➕ Added to ShowOther: ${title}`);
 
     } else if (existing.shows > 0) {
       console.log(`⚠️ Already exists in list: ${title}`);
@@ -75,8 +75,8 @@ export async function addMovieToTrakt(title, year) {
 const { added, existing, not_found } = response.data;
 
 if (added.movies > 0) {
-  console.log(`✅ Added to Movie malayalam: ${title}`);
-  await sendMessage(`✅ Added to Movie malayalam: ${title}`);
+  console.log(`➕ Added to Movie malayalam: ${title}`);
+  await sendMessage(`➕ Added to Movie malayalam: ${title}`);
 
 } else if (existing.movies > 0) {
   console.log(`⚠️ Already exists in list: ${title}`);

@@ -7,8 +7,12 @@ import { addShowToTrakt,addMovieToTrakt,parseTitle } from "./tracklist.js";
 
 
 async function processTodayTag() {
+  await sendMessage("══════════════════════")
 
-  await sendMessage('TrackTv process started');
+  console.log("-".repeat(process.stdout.columns || 50));
+
+  await sendMessage('🚀 TrackTv process started ');
+  console.log('🚀 TrackTv process started ')
 
   await loginQB();
 
@@ -23,20 +27,20 @@ async function processTodayTag() {
 
     if (parsed.type === "movie") {
       console.log(`🎬 Movie: ${parsed.title} (${parsed.year})`);
-      await sendMessage(`✅ Found 🎬 Movie: ${parsed.title}`)
-      await delay(2000)
+      await delay(1000,true);
      await addMovieToTrakt(parsed.title, parsed.year);
     }
 
     if (parsed.type === "show") {
       console.log(`📺 Show: ${parsed.title} (${parsed.year})`);
-      await sendMessage(`✅ Found 📺 Show: ${parsed.title}`)
-      await delay(2000)
+      await delay(1000,true)
       await addShowToTrakt(parsed.title, parsed.year);
     }
   }
 
-  await sendMessage('TrackTv process completed');
+  await sendMessage('TrackTv process completed Completed 🎉');
+  console.log("-".repeat(process.stdout.columns || 50));
+  await sendMessage("══════════════════════")
 }
 
 processTodayTag();
