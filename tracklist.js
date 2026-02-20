@@ -35,12 +35,13 @@ export async function addShowToTrakt(title, year) {
 
     } else if (not_found.shows.length > 0) {
       console.log(`❌ Show not found in Trakt database: ${title}`);
-      console.log("Not found details:", not_found.shows);
-      await sendMessage(`❌ Show not found in Trakt database: ${title}`);
-
+      console.log("🚧 Not found details:", not_found.shows);
+      await sendMessage(`❌ Show not found in Trakt database:`);
+      await sendMessage(`${title}`)
     } else {
       console.log(`⚠️ Unknown state for show: ${title}`);
-      await sendMessage(`⚠️ Unknown state for show: ${title}`);
+      await sendMessage(`⚠️ Unknown state for show:`);
+      await sendMessage(`${title}`)
     }
 
   } catch (error) {
@@ -84,10 +85,12 @@ if (added.movies > 0) {
 
 } else if (not_found.movies.length > 0) {
   console.log(`❌ Not found in Trakt database: ${title}`);
-  await sendMessage(`❌ Not found in Trakt database: ${title}`);
-
+  await sendMessage(`❌ Not found in Trakt database: `);
+  await sendMessage(`${title}`)
 } else {
   console.log(`⚠️ Unknown state for: ${title}`);
+  sendMessage(`⚠️ Unknown state for:`)
+  await sendMessage(`${title}`)
 }
 
   } catch (error) {
