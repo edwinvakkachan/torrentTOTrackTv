@@ -21,18 +21,31 @@ export async function addShowToTrakt(title, year) {
       }
     );
 
-    console.log("Trakt Response:", response.data);
+    console.log("Trakt Show Response:", response.data);
 
-    if (response.data.added.shows > 0) {
+    const { added, existing, not_found } = response.data;
+
+    if (added.shows > 0) {
       console.log(`✅ Added to ShowOther: ${title}`);
-      await sendMessage(`✅ Added to ShowOther: ${title}`)
+      await sendMessage(`✅ Added to ShowOther: ${title}`);
+
+    } else if (existing.shows > 0) {
+      console.log(`⚠️ Already exists in list: ${title}`);
+      await sendMessage(`⚠️ Already exists in list: ${title}`);
+
+    } else if (not_found.shows.length > 0) {
+      console.log(`❌ Show not found in Trakt database: ${title}`);
+      console.log("Not found details:", not_found.shows);
+      await sendMessage(`❌ Show not found in Trakt database: ${title}`);
+
     } else {
-      console.log(`⚠️ Already exists: ${title}`);
+      console.log(`⚠️ Unknown state for show: ${title}`);
+      await sendMessage(`⚠️ Unknown state for show: ${title}`);
     }
 
   } catch (error) {
     console.error("❌ Trakt Show Error:", error.response?.data || error.message);
-    await sendMessage("❌ Trakt Show Error:")
+    await sendMessage("❌ Trakt Show Error");
   }
 }
 
@@ -57,11 +70,25 @@ export async function addMovieToTrakt(title, year) {
 
     console.log("Trakt Response:", response.data);
 
-    if (response.data.added.movies > 0) {
-      console.log(`✅ Added to Movie malayalam: ${title}`);
-    } else {
-      console.log(`⚠️ Already exists: ${title}`);
-    }
+    console.log("Trakt Response:", response.data);
+
+const { added, existing, not_found } = response.data;
+
+if (added.movies > 0) {
+  console.log(`✅ Added to Movie malayalam: ${title}`);
+  await sendMessage(`✅ Added to Movie malayalam: ${title}`);
+
+} else if (existing.movies > 0) {
+  console.log(`⚠️ Already exists in list: ${title}`);
+  await sendMessage(`⚠️ Already exists in list: ${title}`);
+
+} else if (not_found.movies.length > 0) {
+  console.log(`❌ Not found in Trakt database: ${title}`);
+  await sendMessage(`❌ Not found in Trakt database: ${title}`);
+
+} else {
+  console.log(`⚠️ Unknown state for: ${title}`);
+}
 
   } catch (error) {
     console.error("❌ Trakt Error:", error.response?.data || error.message);
