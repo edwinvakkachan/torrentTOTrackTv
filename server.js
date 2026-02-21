@@ -7,9 +7,8 @@ import { addShowToTrakt,addMovieToTrakt,parseTitle } from "./tracklist.js";
 
 
 async function processTodayTag() {
-  await sendMessage("══════════════════════")
-
-  console.log("-".repeat(process.stdout.columns || 50));
+  await sendMessage("🥦🥦🥦🥦🥦🥦🥦🥦🥦");
+  console.log('🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦');
 
   await sendMessage('🚀 TrackTv process started ');
   console.log('🚀 TrackTv process started ')
@@ -39,8 +38,8 @@ async function processTodayTag() {
   }
 
   await sendMessage('TrackTv process completed Completed 🎉');
-  console.log("-".repeat(process.stdout.columns || 50));
-  await sendMessage("══════════════════════")
+  await sendMessage("🥦🥦🥦🥦🥦🥦🥦🥦🥦");
+  console.log('🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦');
 }
 
 processTodayTag();
