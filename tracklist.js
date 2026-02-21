@@ -31,7 +31,7 @@ export async function addShowToTrakt(title, year) {
 
     } else if (existing.shows > 0) {
       console.log(`⚠️ Already exists in list: ${title}`);
-      await sendMessage(`⚠️ Already exists in list: ${title}`);
+      // await sendMessage(`⚠️ Already exists in list: ${title}`);
 
     } else if (not_found.shows.length > 0) {
       console.log(`❌ Show not found in Trakt database: ${title}`);
