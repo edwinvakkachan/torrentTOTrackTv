@@ -9,8 +9,6 @@ import { addShowToTrakt,addMovieToTrakt,parseTitle } from "./tracklist.js";
 async function processTodayTag() {
   await sendMessage("══════════════════════")
 
-  await sendMessage("🥦if you find this message this is succes🥦")
-
   console.log("-".repeat(process.stdout.columns || 50));
 
   await sendMessage('🚀 TrackTv process started ');
