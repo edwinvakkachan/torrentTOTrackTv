@@ -3,7 +3,7 @@ import { delay } from "./delay.js";
 import { sendMessage } from "./telegram/sendTelegramMessage.js";
 
 import { loginQB, getTorrentsByCurrentDateTag } from "./qbittorrent/qb.js";
-import { addShowToTrakt,addMovieToTrakt,parseTitle } from "./tracklist.js";
+import { parseTitle,addMoviesBatchToTrakt,addShowsBatchToTrakt,ensureListUnderLimit,ensureShowListUnderLimit } from "./tracklist.js";
 
 
 async function processTodayTag() {
@@ -19,25 +19,33 @@ async function processTodayTag() {
   console.log(`current lenght ${torrents.length}`)
 
 
-  for (const torrent of torrents) {
+ const movies = [];
+const shows = [];
 
-    const parsed = await parseTitle(torrent.name);
-    console.log(parsed)
-    if (!parsed) continue;
+for (const torrent of torrents) {
 
-    if (parsed.type === "movie") {
-      console.log(`🎬 Movie: ${parsed.title} (${parsed.year})`);
-      await delay(3000,true);
-     await addMovieToTrakt(parsed.title, parsed.year);
-    }
+  const parsed = await parseTitle(torrent.name);
+  if (!parsed) continue;
 
-    if (parsed.type === "show") {
-      console.log(`📺 Show: ${parsed.title} (${parsed.year})`);
-      await delay(3000,true)
-      await addShowToTrakt(parsed.title, parsed.year);
-    }
+  if (parsed.type === "movie") {
+    movies.push({ title: parsed.title, year: parsed.year });
   }
 
+  if (parsed.type === "show") {
+    shows.push({ title: parsed.title, year: parsed.year });
+  }
+}
+
+if (movies.length > 0) {
+  await ensureListUnderLimit();
+  await addMoviesBatchToTrakt(movies);
+}
+
+if (shows.length > 0) {
+  await ensureShowListUnderLimit();
+  await addShowsBatchToTrakt(shows);
+}
+console.log('TrackTv process completed Completed 🎉')
   await sendMessage('TrackTv process completed Completed 🎉');
   await sendMessage("🥦🥦🥦🥦🥦🥦🥦🥦🥦");
   console.log('🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦');

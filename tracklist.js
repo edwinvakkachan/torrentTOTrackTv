@@ -44,23 +44,33 @@ export async function addShowToTrakt(title, year) {
       await sendMessage(`${title}`)
     }
 
-  } catch (error) {
+} catch (error) {
   const status = error.response?.status;
 
+  console.log("────────── TRAKT DEBUG ──────────");
+  console.log("Status:", status);
+  console.log("Headers:", error.response?.headers);
+  console.log("Data:", error.response?.data);
+  console.log("──────────────────────────────────");
+
   if (status === 420 || status === 429) {
-    console.log("⚠️ Rate limited by Trakt. Waiting 10 seconds...");
-    await sendMessage("⚠️ Trakt rate limited. Waiting 10 seconds...");
+    const reset = error.response?.headers?.["x-ratelimit-reset"];
+    const remaining = error.response?.headers?.["x-ratelimit-remaining"];
+
+    console.log(`Remaining: ${remaining}`);
+    console.log(`Reset at: ${reset}`);
+
+    await sendMessage(`⚠️ Trakt Rate Limited\nRemaining: ${remaining}`);
     await delay(10000, true);
-    // return addMovieToTrakt(title, year); // retry once
+    return;
   }
 
   if (status === 401) {
-    console.log("🔐 Trakt token expired!");
     await sendMessage("🔐 Trakt token expired!");
     return;
   }
 
-  console.error("❌ Trakt Error:", error.response?.data || error.message);
+  console.error("❌ Trakt Error:", error.message);
 }
 }
 
@@ -107,23 +117,33 @@ if (added.movies > 0) {
   await sendMessage(`${title}`)
 }
 
-  } catch (error) {
+} catch (error) {
   const status = error.response?.status;
 
+  console.log("────────── TRAKT DEBUG ──────────");
+  console.log("Status:", status);
+  console.log("Headers:", error.response?.headers);
+  console.log("Data:", error.response?.data);
+  console.log("──────────────────────────────────");
+
   if (status === 420 || status === 429) {
-    console.log("⚠️ Rate limited by Trakt. Waiting 10 seconds...");
-    await sendMessage("⚠️ Trakt rate limited. Waiting 10 seconds...");
+    const reset = error.response?.headers?.["x-ratelimit-reset"];
+    const remaining = error.response?.headers?.["x-ratelimit-remaining"];
+
+    console.log(`Remaining: ${remaining}`);
+    console.log(`Reset at: ${reset}`);
+
+    await sendMessage(`⚠️ Trakt Rate Limited\nRemaining: ${remaining}`);
     await delay(10000, true);
-    // return addMovieToTrakt(title, year); // retry once
+    return;
   }
 
   if (status === 401) {
-    console.log("🔐 Trakt token expired!");
     await sendMessage("🔐 Trakt token expired!");
     return;
   }
 
-  console.error("❌ Trakt Error:", error.response?.data || error.message);
+  console.error("❌ Trakt Error:", error.message);
 }
 }
 
@@ -155,4 +175,159 @@ export async function parseTitle(rawName) {
   };
 }
 
+export async function getMovieListItems() {
+  const response = await axios.get(
+    "https://api.trakt.tv/users/wreath1553/lists/movie-malayalam/items",
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "trakt-api-version": "2",
+        "trakt-api-key": process.env.TRAKT_CLIENT_ID,
+        "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
+      }
+    }
+  );
 
+  return response.data;
+}
+
+
+export async function removeMoviesFromList(movieIds) {
+  try {
+    const response = await axios.post(
+      "https://api.trakt.tv/users/wreath1553/lists/movie-malayalam/items/remove",
+      {
+        movies: movieIds.map(id => ({
+          ids: { trakt: id }
+        }))
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "trakt-api-version": "2",
+          "trakt-api-key": process.env.TRAKT_CLIENT_ID,
+          "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
+        }
+      }
+    );
+
+    console.log("🗑 Removed response:", response.data);
+  } catch (error) {
+    console.log("Delete error:", error.response?.data || error.message);
+  }
+}
+
+export async function ensureListUnderLimit() {
+  const items = await getMovieListItems();
+
+  if (items.length < 100) return;
+
+  const oldest = items[items.length - 1]; // last item
+
+  const traktId = oldest.movie.ids.trakt;
+
+  console.log(`🗑 Removing oldest: ${oldest.movie.title}`);
+
+  await removeMoviesFromList([traktId]);
+}
+
+export async function addMoviesBatchToTrakt(movies) {
+  try {
+    const response = await axios.post(
+      "https://api.trakt.tv/users/wreath1553/lists/movie-malayalam/items",
+      { movies },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "trakt-api-version": "2",
+          "trakt-api-key": process.env.TRAKT_CLIENT_ID,
+          "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
+        }
+      }
+    );
+
+    console.log("🎬 Batch Movie Response:", response.data);
+    await sendMessage(`🎬 Batch movies processed: ${movies.length}`);
+
+  } catch (error) {
+    console.log("Batch Movie Error:", error.response?.data || error.message);
+  }
+}
+
+export async function addShowsBatchToTrakt(shows) {
+  try {
+    const response = await axios.post(
+      "https://api.trakt.tv/users/wreath1553/lists/showother/items",
+      { shows },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "trakt-api-version": "2",
+          "trakt-api-key": process.env.TRAKT_CLIENT_ID,
+          "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
+        }
+      }
+    );
+
+    console.log("📺 Batch Show Response:", response.data);
+    await sendMessage(`📺 Batch shows processed: ${shows.length}`);
+
+  } catch (error) {
+    console.log("Batch Show Error:", error.response?.data || error.message);
+  }
+}
+
+export async function getShowListItems() {
+  const response = await axios.get(
+    "https://api.trakt.tv/users/wreath1553/lists/showother/items",
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "trakt-api-version": "2",
+        "trakt-api-key": process.env.TRAKT_CLIENT_ID,
+        "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
+      }
+    }
+  );
+
+  return response.data;
+}
+
+export async function removeShowsFromList(showIds) {
+  try {
+    const response = await axios.post(
+      "https://api.trakt.tv/users/wreath1553/lists/showother/items/remove",
+      {
+        shows: showIds.map(id => ({
+          ids: { trakt: id }
+        }))
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "trakt-api-version": "2",
+          "trakt-api-key": process.env.TRAKT_CLIENT_ID,
+          "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
+        }
+      }
+    );
+
+    console.log("🗑 Shows removed:", response.data);
+
+  } catch (error) {
+    console.log("Show delete error:", error.response?.data || error.message);
+  }
+}
+export async function ensureShowListUnderLimit(limit = 100) {
+  const items = await getShowListItems();
+
+  if (items.length < limit) return;
+
+  const oldest = items[items.length - 1];
+
+  const traktId = oldest.show.ids.trakt;
+
+  console.log(`🗑 Removing oldest show: ${oldest.show.title}`);
+
+  await removeShowsFromList([traktId]);
+}
