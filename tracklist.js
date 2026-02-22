@@ -4,148 +4,148 @@ dotenv.config();
 import { sendMessage } from './telegram/sendTelegramMessage.js';
 import { delay } from './delay.js';
 
-export async function addShowToTrakt(title, year) {
-  try {
-    const response = await axios.post(
-      "https://api.trakt.tv/users/wreath1553/lists/showother/items",
-      {
-        shows: [{ title, year }]
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "trakt-api-version": "2",
-          "trakt-api-key": process.env.TRAKT_CLIENT_ID,
-          "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
-        }
-      }
-    );
+// export async function addShowToTrakt(title, year) {
+//   try {
+//     const response = await axios.post(
+//       "https://api.trakt.tv/users/wreath1553/lists/showother/items",
+//       {
+//         shows: [{ title, year }]
+//       },
+//       {
+//         headers: {
+//           "Content-Type": "application/json",
+//           "trakt-api-version": "2",
+//           "trakt-api-key": process.env.TRAKT_CLIENT_ID,
+//           "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
+//         }
+//       }
+//     );
 
-    console.log("Trakt Show Response:", response.data);
+//     console.log("Trakt Show Response:", response.data);
 
-    const { added, existing, not_found } = response.data;
+//     const { added, existing, not_found } = response.data;
 
-    if (added.shows > 0) {
-      console.log(`➕ Added to ShowOther: ${title}`);
-      await sendMessage(`➕ Added to ShowOther: ${title}`);
+//     if (added.shows > 0) {
+//       console.log(`➕ Added to ShowOther: ${title}`);
+//       await sendMessage(`➕ Added to ShowOther: ${title}`);
 
-    } else if (existing.shows > 0) {
-      console.log(`⚠️ Already exists in list: ${title}`);
-      // await sendMessage(`⚠️ Already exists in list: ${title}`);
+//     } else if (existing.shows > 0) {
+//       console.log(`⚠️ Already exists in list: ${title}`);
+//       // await sendMessage(`⚠️ Already exists in list: ${title}`);
 
-    } else if (not_found.shows.length > 0) {
-      console.log(`❌ Show not found in Trakt database: ${title}`);
-      console.log("🚧 Not found details:", not_found.shows);
-      await sendMessage(`❌ Show not found in Trakt database:`);
-      await sendMessage(`${title}`)
-    } else {
-      console.log(`⚠️ Unknown state for show: ${title}`);
-      await sendMessage(`⚠️ Unknown state for show:`);
-      await sendMessage(`${title}`)
-    }
+//     } else if (not_found.shows.length > 0) {
+//       console.log(`❌ Show not found in Trakt database: ${title}`);
+//       console.log("🚧 Not found details:", not_found.shows);
+//       await sendMessage(`❌ Show not found in Trakt database:`);
+//       await sendMessage(`${title}`)
+//     } else {
+//       console.log(`⚠️ Unknown state for show: ${title}`);
+//       await sendMessage(`⚠️ Unknown state for show:`);
+//       await sendMessage(`${title}`)
+//     }
 
-} catch (error) {
-  const status = error.response?.status;
+// } catch (error) {
+//   const status = error.response?.status;
 
-  console.log("────────── TRAKT DEBUG ──────────");
-  console.log("Status:", status);
-  console.log("Headers:", error.response?.headers);
-  console.log("Data:", error.response?.data);
-  console.log("──────────────────────────────────");
+//   console.log("────────── TRAKT DEBUG ──────────");
+//   console.log("Status:", status);
+//   console.log("Headers:", error.response?.headers);
+//   console.log("Data:", error.response?.data);
+//   console.log("──────────────────────────────────");
 
-  if (status === 420 || status === 429) {
-    const reset = error.response?.headers?.["x-ratelimit-reset"];
-    const remaining = error.response?.headers?.["x-ratelimit-remaining"];
+//   if (status === 420 || status === 429) {
+//     const reset = error.response?.headers?.["x-ratelimit-reset"];
+//     const remaining = error.response?.headers?.["x-ratelimit-remaining"];
 
-    console.log(`Remaining: ${remaining}`);
-    console.log(`Reset at: ${reset}`);
+//     console.log(`Remaining: ${remaining}`);
+//     console.log(`Reset at: ${reset}`);
 
-    await sendMessage(`⚠️ Trakt Rate Limited\nRemaining: ${remaining}`);
-    await delay(10000, true);
-    return;
-  }
+//     await sendMessage(`⚠️ Trakt Rate Limited\nRemaining: ${remaining}`);
+//     await delay(10000, true);
+//     return;
+//   }
 
-  if (status === 401) {
-    await sendMessage("🔐 Trakt token expired!");
-    return;
-  }
+//   if (status === 401) {
+//     await sendMessage("🔐 Trakt token expired!");
+//     return;
+//   }
 
-  console.error("❌ Trakt Error:", error.message);
-}
-}
+//   console.error("❌ Trakt Error:", error.message);
+// }
+// }
 
 
 
-export async function addMovieToTrakt(title, year) {
-  try {
-    const response = await axios.post(
-      "https://api.trakt.tv/users/wreath1553/lists/movie-malayalam/items",
-      {
-        movies: [{ title, year }]
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "trakt-api-version": "2",
-          "trakt-api-key": process.env.TRAKT_CLIENT_ID,
-          "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
-        }
-      }
-    );
+// export async function addMovieToTrakt(title, year) {
+//   try {
+//     const response = await axios.post(
+//       "https://api.trakt.tv/users/wreath1553/lists/movie-malayalam/items",
+//       {
+//         movies: [{ title, year }]
+//       },
+//       {
+//         headers: {
+//           "Content-Type": "application/json",
+//           "trakt-api-version": "2",
+//           "trakt-api-key": process.env.TRAKT_CLIENT_ID,
+//           "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
+//         }
+//       }
+//     );
 
-    console.log("Trakt Response:", response.data);
+//     console.log("Trakt Response:", response.data);
 
-    console.log("Trakt Response:", response.data);
+//     console.log("Trakt Response:", response.data);
 
-const { added, existing, not_found } = response.data;
+// const { added, existing, not_found } = response.data;
 
-if (added.movies > 0) {
-  console.log(`➕ Added to Movie malayalam: ${title}`);
-  await sendMessage(`➕ Added to Movie malayalam: ${title}`);
+// if (added.movies > 0) {
+//   console.log(`➕ Added to Movie malayalam: ${title}`);
+//   await sendMessage(`➕ Added to Movie malayalam: ${title}`);
 
-} else if (existing.movies > 0) {
-  console.log(`⚠️ Already exists in list: ${title}`);
-  await sendMessage(`⚠️ Already exists in list: ${title}`);
+// } else if (existing.movies > 0) {
+//   console.log(`⚠️ Already exists in list: ${title}`);
+//   await sendMessage(`⚠️ Already exists in list: ${title}`);
 
-} else if (not_found.movies.length > 0) {
-  console.log(`❌ Not found in Trakt database: ${title}`);
-  await sendMessage(`❌ Not found in Trakt database: `);
-  await sendMessage(`${title}`)
-} else {
-  console.log(`⚠️ Unknown state for: ${title}`);
-  sendMessage(`⚠️ Unknown state for:`)
-  await sendMessage(`${title}`)
-}
+// } else if (not_found.movies.length > 0) {
+//   console.log(`❌ Not found in Trakt database: ${title}`);
+//   await sendMessage(`❌ Not found in Trakt database: `);
+//   await sendMessage(`${title}`)
+// } else {
+//   console.log(`⚠️ Unknown state for: ${title}`);
+//   sendMessage(`⚠️ Unknown state for:`)
+//   await sendMessage(`${title}`)
+// }
 
-} catch (error) {
-  const status = error.response?.status;
+// } catch (error) {
+//   const status = error.response?.status;
 
-  console.log("────────── TRAKT DEBUG ──────────");
-  console.log("Status:", status);
-  console.log("Headers:", error.response?.headers);
-  console.log("Data:", error.response?.data);
-  console.log("──────────────────────────────────");
+//   console.log("────────── TRAKT DEBUG ──────────");
+//   console.log("Status:", status);
+//   console.log("Headers:", error.response?.headers);
+//   console.log("Data:", error.response?.data);
+//   console.log("──────────────────────────────────");
 
-  if (status === 420 || status === 429) {
-    const reset = error.response?.headers?.["x-ratelimit-reset"];
-    const remaining = error.response?.headers?.["x-ratelimit-remaining"];
+//   if (status === 420 || status === 429) {
+//     const reset = error.response?.headers?.["x-ratelimit-reset"];
+//     const remaining = error.response?.headers?.["x-ratelimit-remaining"];
 
-    console.log(`Remaining: ${remaining}`);
-    console.log(`Reset at: ${reset}`);
+//     console.log(`Remaining: ${remaining}`);
+//     console.log(`Reset at: ${reset}`);
 
-    await sendMessage(`⚠️ Trakt Rate Limited\nRemaining: ${remaining}`);
-    await delay(10000, true);
-    return;
-  }
+//     await sendMessage(`⚠️ Trakt Rate Limited\nRemaining: ${remaining}`);
+//     await delay(10000, true);
+//     return;
+//   }
 
-  if (status === 401) {
-    await sendMessage("🔐 Trakt token expired!");
-    return;
-  }
+//   if (status === 401) {
+//     await sendMessage("🔐 Trakt token expired!");
+//     return;
+//   }
 
-  console.error("❌ Trakt Error:", error.message);
-}
-}
+//   console.error("❌ Trakt Error:", error.message);
+// }
+// }
 
 export async function parseTitle(rawName) {
 
@@ -217,18 +217,22 @@ export async function removeMoviesFromList(movieIds) {
   }
 }
 
-export async function ensureListUnderLimit() {
+export async function ensureListUnderLimit(incomingCount, limit = 100) {
   const items = await getMovieListItems();
 
-  if (items.length < 100) return;
+  const current = items.length;
+  const space = limit - current;
 
-  const oldest = items[items.length - 1]; // last item
+  if (space >= incomingCount) return;
 
-  const traktId = oldest.movie.ids.trakt;
+  const overflow = incomingCount - space;
 
-  console.log(`🗑 Removing oldest: ${oldest.movie.title}`);
+  const toRemove = items.slice(-overflow);
+  const ids = toRemove.map(item => item.movie.ids.trakt);
 
-  await removeMoviesFromList([traktId]);
+  console.log(`🗑 Removing ${ids.length} movies to stay under limit`);
+
+  await removeMoviesFromList(ids);
 }
 
 export async function addMoviesBatchToTrakt(movies) {
@@ -318,16 +322,20 @@ export async function removeShowsFromList(showIds) {
     console.log("Show delete error:", error.response?.data || error.message);
   }
 }
-export async function ensureShowListUnderLimit(limit = 100) {
+export async function ensureShowListUnderLimit(incomingCount, limit = 100) {
   const items = await getShowListItems();
 
-  if (items.length < limit) return;
+  const current = items.length;
+  const space = limit - current;
 
-  const oldest = items[items.length - 1];
+  if (space >= incomingCount) return;
 
-  const traktId = oldest.show.ids.trakt;
+  const overflow = incomingCount - space;
 
-  console.log(`🗑 Removing oldest show: ${oldest.show.title}`);
+  const toRemove = items.slice(-overflow);
+  const ids = toRemove.map(item => item.show.ids.trakt);
 
-  await removeShowsFromList([traktId]);
+  console.log(`🗑 Removing ${ids.length} shows to stay under limit`);
+
+  await removeShowsFromList(ids);
 }

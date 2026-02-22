@@ -37,13 +37,13 @@ for (const torrent of torrents) {
 }
 
 if (movies.length > 0) {
-  await ensureListUnderLimit();
-  await addMoviesBatchToTrakt(movies);
+await ensureListUnderLimit(movies.length);
+await addMoviesBatchToTrakt(movies);
 }
 
 if (shows.length > 0) {
-  await ensureShowListUnderLimit();
-  await addShowsBatchToTrakt(shows);
+ await ensureShowListUnderLimit(shows.length);
+await addShowsBatchToTrakt(shows);
 }
 console.log('TrackTv process completed Completed 🎉')
   await sendMessage('TrackTv process completed Completed 🎉');
