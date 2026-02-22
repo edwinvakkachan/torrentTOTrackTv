@@ -2,7 +2,7 @@ import axios from 'axios';
 import dotenv from 'dotenv';
 dotenv.config();
 import { sendMessage } from './telegram/sendTelegramMessage.js';
-
+import { delay } from './delay.js';
 
 export async function addShowToTrakt(title, year) {
   try {
@@ -45,9 +45,23 @@ export async function addShowToTrakt(title, year) {
     }
 
   } catch (error) {
-    console.error("❌ Trakt Show Error:", error.response?.data || error.message);
-    await sendMessage("❌ Trakt Show Error");
+  const status = error.response?.status;
+
+  if (status === 420 || status === 429) {
+    console.log("⚠️ Rate limited by Trakt. Waiting 10 seconds...");
+    await sendMessage("⚠️ Trakt rate limited. Waiting 10 seconds...");
+    await delay(10000, true);
+    // return addMovieToTrakt(title, year); // retry once
   }
+
+  if (status === 401) {
+    console.log("🔐 Trakt token expired!");
+    await sendMessage("🔐 Trakt token expired!");
+    return;
+  }
+
+  console.error("❌ Trakt Error:", error.response?.data || error.message);
+}
 }
 
 
@@ -94,8 +108,23 @@ if (added.movies > 0) {
 }
 
   } catch (error) {
-    console.error("❌ Trakt Error:", error.response?.data || error.message);
+  const status = error.response?.status;
+
+  if (status === 420 || status === 429) {
+    console.log("⚠️ Rate limited by Trakt. Waiting 10 seconds...");
+    await sendMessage("⚠️ Trakt rate limited. Waiting 10 seconds...");
+    await delay(10000, true);
+    // return addMovieToTrakt(title, year); // retry once
   }
+
+  if (status === 401) {
+    console.log("🔐 Trakt token expired!");
+    await sendMessage("🔐 Trakt token expired!");
+    return;
+  }
+
+  console.error("❌ Trakt Error:", error.response?.data || error.message);
+}
 }
 
 export async function parseTitle(rawName) {

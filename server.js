@@ -16,6 +16,7 @@ async function processTodayTag() {
   await loginQB();
 
   const torrents = await getTorrentsByCurrentDateTag();
+  console.log(`current lenght ${torrents.length}`)
 
 
   for (const torrent of torrents) {
@@ -26,13 +27,13 @@ async function processTodayTag() {
 
     if (parsed.type === "movie") {
       console.log(`🎬 Movie: ${parsed.title} (${parsed.year})`);
-      await delay(1000,true);
+      await delay(3000,true);
      await addMovieToTrakt(parsed.title, parsed.year);
     }
 
     if (parsed.type === "show") {
       console.log(`📺 Show: ${parsed.title} (${parsed.year})`);
-      await delay(1000,true)
+      await delay(3000,true)
       await addShowToTrakt(parsed.title, parsed.year);
     }
   }
