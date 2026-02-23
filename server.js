@@ -4,7 +4,7 @@ import { sendMessage } from "./telegram/sendTelegramMessage.js";
 
 import { loginQB, getTorrentsByCurrentDateTag } from "./qbittorrent/qb.js";
 import { parseTitle,addMoviesBatchToTrakt,addShowsBatchToTrakt,ensureListUnderLimit,ensureShowListUnderLimit } from "./tracklist.js";
-
+import { log } from "./timelog.js";
 
 async function processTodayTag() {
   await sendMessage("🥦🥦🥦🥦🥦🥦🥦🥦🥦");
@@ -12,6 +12,7 @@ async function processTodayTag() {
 
   await sendMessage('🚀 TrackTv process started ');
   console.log('🚀 TrackTv process started ')
+  await log();
 
   await loginQB();
 
