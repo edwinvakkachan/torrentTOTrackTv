@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import { sendMessage } from './telegram/sendTelegramMessage.js';
 import { delay } from './delay.js';
+import { saveUnmatched } from './db/saveUnmatched.js';
 
 
 export async function parseTitle(rawName) {
@@ -94,28 +95,7 @@ export async function ensureListUnderLimit(incomingCount, limit = 80) {
   await removeMoviesFromList(ids);
 }
 
-// export async function addMoviesBatchToTrakt(movies) {
-//   try {
-//     const response = await axios.post(
-//       "https://api.trakt.tv/users/wreath1553/lists/movie-malayalam/items",
-//       { movies },
-//       {
-//         headers: {
-//           "Content-Type": "application/json",
-//           "trakt-api-version": "2",
-//           "trakt-api-key": process.env.TRAKT_CLIENT_ID,
-//           "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
-//         }
-//       }
-//     );
 
-//     console.log("🎬 Batch Movie Response:", response.data);
-//     await sendMessage(`🎬 Batch movies processed: ${movies.length}`);
-
-//   } catch (error) {
-//     console.log("Batch Movie Error:", error.response?.data || error.message);
-//   }
-// }
 
 export async function addMoviesBatchToTrakt(movies) {
   try {
@@ -137,15 +117,21 @@ export async function addMoviesBatchToTrakt(movies) {
     console.log("🎬 Batch Movie Response:", result);
 
     // ✅ Check rejected movies
-    if (result.not_found?.movies?.length > 0) {
-      console.log("❌ Rejected movies:");
-      await sendMessage("❌ Rejected movies:")
-      for (const value of result.not_found.movies){
-        console.log(value.title);
-        await sendMessage(value.title)
+   if (result.not_found?.movies?.length > 0) {
+  console.log("❌ Rejected movies:");
+  await sendMessage("❌ Rejected movies:");
 
-      }
-    }
+  for (const value of result.not_found.movies) {
+    console.log(value.title);
+    await sendMessage(value.title);
+
+    await saveUnmatched(
+      value.title,
+      value.year || null,
+      "movie"
+    );
+  }
+}
 
     await sendMessage(
       `🎬 Added: ${result.added.movies}, Existing: ${result.existing.movies}`
@@ -156,44 +142,7 @@ export async function addMoviesBatchToTrakt(movies) {
   }
 }
 
-// export async function addShowsBatchToTrakt(shows) {
-//   try {
-//     const response = await axios.post(
-//       "https://api.trakt.tv/users/wreath1553/lists/showother/items",
-//       { shows },
-//       {
-//         headers: {
-//           "Content-Type": "application/json",
-//           "trakt-api-version": "2",
-//           "trakt-api-key": process.env.TRAKT_CLIENT_ID,
-//           "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
-//         }
-//       }
-//     );
 
-
-//  const result = response.data;
-
-//     console.log("📺 Batch Show Response:", result);
-//     await sendMessage(`📺 Batch shows processed: ${shows.length}`);
-
-//     // ✅ Check rejected movies
-//     if (result.not_found?.shows?.length > 0) {
-//       console.log("❌ Rejected shows:");
-//       await sendMessage("❌ Rejected shows:")
-//       for (const value of result.not_found.shows){
-//         console.log(value.title);
-//         await sendMessage(value.title)
-
-//       }
-//     }
-
-
-
-//   } catch (error) {
-//     console.log("Batch Show Error:", error.response?.data || error.message);
-//   }
-// }
 
 export async function addShowsBatchToTrakt(shows) {
   try {
@@ -220,15 +169,21 @@ export async function addShowsBatchToTrakt(shows) {
     );
 
     // ✅ Check rejected shows
-    if (result.not_found?.shows?.length > 0) {
-      console.log("❌ Rejected shows:");
-      await sendMessage("❌ Rejected shows:");
+   if (result.not_found?.shows?.length > 0) {
+  console.log("❌ Rejected shows:");
+  await sendMessage("❌ Rejected shows:");
 
-      for (const value of result.not_found.shows) {
-        console.log(value.title);
-        await sendMessage(`${value.title} (${value.year || "Unknown Year"})`);
-      }
-    }
+  for (const value of result.not_found.shows) {
+    console.log(value.title);
+    await sendMessage(`${value.title} (${value.year || "Unknown Year"})`);
+
+    await saveUnmatched(
+      value.title,
+      value.year || null,
+      "show"
+    );
+  }
+}
 
   } catch (error) {
     console.log("Batch Show Error:", error.response?.data || error.message);
