@@ -217,7 +217,7 @@ export async function removeMoviesFromList(movieIds) {
   }
 }
 
-export async function ensureListUnderLimit(incomingCount, limit = 100) {
+export async function ensureListUnderLimit(incomingCount, limit = 80) {
   const items = await getMovieListItems();
 
   const current = items.length;
@@ -322,7 +322,7 @@ export async function removeShowsFromList(showIds) {
     console.log("Show delete error:", error.response?.data || error.message);
   }
 }
-export async function ensureShowListUnderLimit(incomingCount, limit = 100) {
+export async function ensureShowListUnderLimit(incomingCount, limit = 80) {
   const items = await getShowListItems();
 
   const current = items.length;
