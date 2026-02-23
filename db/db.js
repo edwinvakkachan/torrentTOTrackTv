@@ -11,7 +11,6 @@ const pool = new Pool({
     rejectUnauthorized: false
   }
 });
-
 export async function initDB() {
  
  await pool.query(`
