@@ -16,7 +16,7 @@ async function processTodayTag() {
   await loginQB();
 
   const torrents = await getTorrentsByCurrentDateTag();
-  console.log(`current lenght ${torrents.length}`)
+  console.log(`todays torrent count  ${torrents.length}`)
 
 
  const movies = [];
