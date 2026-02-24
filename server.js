@@ -9,6 +9,7 @@ import { isUnmatched } from "./db/checkUnmatched.js";
 
 
 async function processTodayTag() {
+try {
   await sendMessage("🥦🥦🥦🥦🥦🥦🥦🥦🥦");
   console.log('🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦');
 
@@ -59,6 +60,10 @@ console.log('TrackTv process completed Completed 🎉')
   await sendMessage("🥦🥦🥦🥦🥦🥦🥦🥦🥦");
   console.log('🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦');
   process.exit(0)
+} catch (error) {
+  console.error(error);
+}
+
 }
 
 processTodayTag();
