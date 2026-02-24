@@ -22,7 +22,7 @@ export async function sendMessage(text) {
       chat_id: CHAT_ID,
       text,
     });
-      await delay(2000,true);
+      await delay(10000,true);
     return response.data;
 
   } catch (error) {

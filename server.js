@@ -58,6 +58,7 @@ console.log('TrackTv process completed Completed 🎉')
   await sendMessage('TrackTv process completed Completed 🎉');
   await sendMessage("🥦🥦🥦🥦🥦🥦🥦🥦🥦");
   console.log('🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦');
+  process.exit(0)
 }
 
 processTodayTag();
