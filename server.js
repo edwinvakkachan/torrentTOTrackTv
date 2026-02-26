@@ -80,7 +80,7 @@ async function processTodayTag() {
 logger.info('🚀 TrackTv process started');
 
     await log();
-    loginQB();
+    await loginQB();
 
     // Fetch torrents
     const torrents = await safeExecute(
