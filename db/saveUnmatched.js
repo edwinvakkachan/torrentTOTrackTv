@@ -1,4 +1,5 @@
 import { initDB } from "./db.js";
+import logger from "../utils/logger.js";
 
 export async function saveUnmatched(title, year, type) {
   const db = await initDB();
@@ -11,6 +12,6 @@ await db.query(
   [title, year, type]
 );
   } catch (err) {
-    console.error("Unmatched insert error:", err.message);
+    logger.error("Unmatched insert error:", err.message);
   }
 }

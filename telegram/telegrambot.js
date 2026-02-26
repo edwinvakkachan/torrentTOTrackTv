@@ -1,6 +1,7 @@
 import axios from "axios";
 import dotenv from "dotenv";
 import {initDB} from '../db/db.js'
+import logger from "../utils/logger.js";
 
 dotenv.config();
 

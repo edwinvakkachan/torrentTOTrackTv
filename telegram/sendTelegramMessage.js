@@ -1,6 +1,7 @@
 import axios from "axios";
 import dotenv from "dotenv";
 import { delay } from "../delay.js";
+import logger from "../utils/logger.js";
 
 dotenv.config();
 
@@ -26,7 +27,7 @@ export async function sendMessage(text) {
     return response.data;
 
   } catch (error) {
-    console.error("Telegram send failed:", error.message);
+    logger.error("Telegram send failed:", error.message);
 
     // Do NOT rethrow if you don't want app to crash
     return null;

@@ -1,6 +1,7 @@
 import axios from "axios";
 import pkg from "pg";
 import dotenv from "dotenv";
+import logger from "../utils/logger.js";
 
 dotenv.config();
 
@@ -43,7 +44,7 @@ export async function getValidAccessToken() {
     return tokenData.access_token;
   }
 
-  console.log("Token expired. Refreshing...");
+  logger.info("Token expired. Refreshing...");
 
   try {
     const res = await axios.post(
@@ -73,12 +74,12 @@ export async function getValidAccessToken() {
       [access_token, refresh_token, expiresAt, tokenData.id]
     );
 
-    console.log("Token refreshed successfully");
+    logger.info("Token refreshed successfully");
 
     return access_token;
 
   } catch (error) {
-    console.error("Token refresh failed:", {
+    logger.error("Token refresh failed:", {
       status: error.response?.status,
       data: error.response?.data,
       message: error.message

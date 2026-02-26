@@ -1,4 +1,5 @@
 import pkg from "pg";
+import logger from "./logger";
 const { Pool } = pkg;
 
 const pool = new Pool({
@@ -14,8 +15,8 @@ export async function cleanupOldLogs() {
       RETURNING id
     `);
 
-    console.log(`🧹 Deleted ${result.rowCount} old logs`);
+    logger.info(`🧹 Deleted ${result.rowCount} old logs`);
   } catch (err) {
-    console.error("Log cleanup failed:", err);
+    logger.error("Log cleanup failed:", err);
   }
 }

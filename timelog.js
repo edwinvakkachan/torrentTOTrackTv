@@ -1,5 +1,5 @@
 import { sendMessage } from "./telegram/sendTelegramMessage.js";
-
+import logger from "./utils/logger.js";
 
 
 export async function log(message='⌚') {
@@ -9,5 +9,5 @@ export async function log(message='⌚') {
   });
 
 await sendMessage(`[${time}] ${message}`)
-  console.log(`[${time}] ${message}`);
+  logger.info(`[${time}] ${message}`);
 }

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { getValidAccessToken } from "./traktAuth.js";
-
+import { sendMessage } from "../telegram/sendTelegramMessage.js";
+import logger from "../utils/logger.js";
 const {
   TRAKT_CLIENT_ID,
   TRAKT_USERNAME,
@@ -29,16 +30,18 @@ export async function callTrakt() {
       timeout: 15000
     });
 
-    console.log(`Trakt fetch successful (${Date.now() - startTime}ms)`);
+    logger.info(`Trakt fetch successful (${Date.now() - startTime}ms)`);
 
     return response.data;
 
   } catch (error) {
-    console.error("Trakt API request failed:", {
+    logger.error("Trakt API request failed:", {
       status: error.response?.status,
       data: error.response?.data,
       message: error.message
     });
+
+    await sendMessage(`Trakt API request failed:`);
 
     throw error;
   }
