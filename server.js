@@ -78,12 +78,8 @@ async function processShows(shows) {
    MAIN WORKFLOW
 ============================================================ */
 async function processTodayTag() {
-  try {
-    await sendMessage("🥦🥦🥦🥦🥦🥦🥦🥦🥦");
-    console.log("🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦");
-
-    await sendMessage("🚀 TrackTv process started");
-    console.log("🚀 TrackTv process started");
+  await sendMessage("🥦🥦🥦🥦🥦🥦🥦🥦🥦");
+  console.log('🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦');
 
     await log();
 
@@ -131,35 +127,20 @@ async function processTodayTag() {
       }
     }
 
-    // Process batches
-    await processMovies(movies);
-    await processShows(shows);
-
-    console.log("🎉 TrackTv process completed");
-    await sendMessage("🎉 TrackTv process completed");
-    await sendMessage("🥦🥦🥦🥦🥦🥦🥦🥦🥦");
-
-    process.exit(0);
-
-  } catch (error) {
-    await handleError(error, "Main Process");
-    process.exit(1);
-  }
+if (movies.length > 0) {
+await ensureListUnderLimit(movies.length);
+await addMoviesBatchToTrakt(movies);
 }
 
-/* ============================================================
-   GLOBAL CRASH PROTECTION (Important for Docker)
-============================================================ */
-process.on("unhandledRejection", async (reason) => {
-  await handleError(reason, "Unhandled Rejection");
-});
+if (shows.length > 0) {
+ await ensureShowListUnderLimit(shows.length);
+await addShowsBatchToTrakt(shows);
+}
+console.log('TrackTv process completed Completed 🎉')
+  await sendMessage('TrackTv process completed Completed 🎉');
+  await sendMessage("🥦🥦🥦🥦🥦🥦🥦🥦🥦");
+  console.log('🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦');
+  process.exit(0)
+}
 
-process.on("uncaughtException", async (err) => {
-  await handleError(err, "Uncaught Exception");
-  process.exit(1);
-});
-
-/* ============================================================
-   START PROCESS
-============================================================ */
 processTodayTag();
