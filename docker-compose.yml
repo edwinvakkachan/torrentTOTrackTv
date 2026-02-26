@@ -14,7 +14,14 @@ services:
       QBITUSER: ${QBITUSER}
       QBITPASS: ${QBITPASS}
       TRAKT_CLIENT_ID: ${TRAKT_CLIENT_ID}
-      TRAKT_TOKEN: ${TRAKT_TOKEN}
+      #TRAKT_TOKEN: ${TRAKT_TOKEN}
+      TRAKT_CLIENT_SECRET: ${TRAKT_CLIENT_SECRET}
+      TRAKT_USERNAME: ${TRAKT_USERNAME}
+      TRAKT_LIST_SLUG: ${TRAKT_LIST_SLUG}
+
+
+
+
 
     volumes:
       - app_logs:/app/logs
