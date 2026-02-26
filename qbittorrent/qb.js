@@ -1,4 +1,5 @@
 import axios from "axios";
+import logger from "../utils/logger.js";
 import { wrapper } from "axios-cookiejar-support";
 import { CookieJar } from "tough-cookie";
 import dotenv from "dotenv";
@@ -29,7 +30,7 @@ export async function getTorrentsByCurrentDateTag() {
     params: { tag: today }
   });
 
-  console.log(`Scanning tag: ${today}`);
+  logger.info(`Scanning tag: ${today}`);
   return res.data;
 }
 

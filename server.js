@@ -1,6 +1,6 @@
 import { delay } from "./delay.js";
 import { sendMessage } from "./telegram/sendTelegramMessage.js";
-
+import logger from "./utils/logger.js";
 import { loginQB, getTorrentsByCurrentDateTag } from "./qbittorrent/qb.js";
 import {
   parseTitle,
@@ -21,7 +21,6 @@ async function handleError(error, context = "Unknown") {
 
   try {
     await sendMessage(`🔥 TrackTv Error (${context})`);
-    await sendMessage(error?.message || "Unknown error");
   } catch (notifyErr) {
     console.error("Failed to send Telegram alert:", notifyErr.message);
   }
@@ -78,14 +77,10 @@ async function processShows(shows) {
    MAIN WORKFLOW
 ============================================================ */
 async function processTodayTag() {
-  await sendMessage("🥦🥦🥦🥦🥦🥦🥦🥦🥦");
-  console.log('🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦');
+logger.info('🚀 TrackTv process started');
 
     await log();
-
-    // QB Login
-    const qbLogin = await safeExecute(() => loginQB(), "QB Login");
-    if (!qbLogin) throw new Error("QB login failed");
+    loginQB();
 
     // Fetch torrents
     const torrents = await safeExecute(
@@ -95,8 +90,7 @@ async function processTodayTag() {
 
     if (!torrents) throw new Error("Failed to fetch torrents");
 
-    console.log(`Today's torrent count: ${torrents.length}`);
-
+    logger.info(`Today's torrent count: ${torrents.length}`);
     const movies = [];
     const shows = [];
 
@@ -114,7 +108,7 @@ async function processTodayTag() {
       );
 
       if (rejected) {
-        console.log("⏭ Skipping already rejected:", parsed.title);
+        logger.info(`⏭ Skipping already rejected: ${parsed.title}`);
         continue;
       }
 
@@ -136,10 +130,9 @@ if (shows.length > 0) {
  await ensureShowListUnderLimit(shows.length);
 await addShowsBatchToTrakt(shows);
 }
-console.log('TrackTv process completed Completed 🎉')
-  await sendMessage('TrackTv process completed Completed 🎉');
-  await sendMessage("🥦🥦🥦🥦🥦🥦🥦🥦🥦");
-  console.log('🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦🥦');
+logger.info('TrackTv process completed Completed 🎉');
+await sendMessage('traktv completed');
+
   process.exit(0)
 }
 

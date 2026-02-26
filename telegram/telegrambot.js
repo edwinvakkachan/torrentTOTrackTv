@@ -75,7 +75,7 @@ async function handleCommand(text) {
 
 // Poll loop
 export async function startTelegramBot() {
-  console.log("Telegram bot started...");
+  logger.info("Telegram bot started...");
 
   setInterval(async () => {
     const updates = await getUpdates();

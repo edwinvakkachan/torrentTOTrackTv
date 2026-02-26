@@ -4,7 +4,8 @@ services:
   torrenttotraktv:
     build: .
     container_name: torrenttotraktv
-    restart: no
+    restart: "no"
+
     environment:
       DATABASE_URL: ${DATABASE_URL}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
@@ -15,10 +16,8 @@ services:
       TRAKT_CLIENT_ID: ${TRAKT_CLIENT_ID}
       TRAKT_TOKEN: ${TRAKT_TOKEN}
 
-   
+    volumes:
+      - app_logs:/app/logs
 
-
-
-
-
-
+volumes:
+  app_logs:

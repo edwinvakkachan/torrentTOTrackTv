@@ -47,6 +47,16 @@ await pool.query(`
   ON trakt_review_queue(created_at DESC);
 `);
 
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS app_logs (
+    id SERIAL PRIMARY KEY,
+    level VARCHAR(20),
+    message TEXT,
+    meta JSONB,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
   return pool;
 }
 

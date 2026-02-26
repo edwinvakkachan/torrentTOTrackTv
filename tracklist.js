@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import { sendMessage } from './telegram/sendTelegramMessage.js';
 import { delay } from './delay.js';
+import logger from "./utils/logger.js";
 import { saveUnmatched } from './db/saveUnmatched.js';
 
 
@@ -70,9 +71,9 @@ export async function removeMoviesFromList(movieIds) {
       }
     );
 
-    console.log("🗑 Removed response:", response.data);
+    logger.info("🗑 Removed response:", response.data);
   } catch (error) {
-    console.log("Delete error:", error.response?.data || error.message);
+    logger.error("Delete error:", error.response?.data || error.message);
   }
 }
 
@@ -90,7 +91,7 @@ export async function ensureListUnderLimit(incomingCount, limit = 80) {
   const ids = toRemove.map(item => item.movie.ids.trakt);
   await sendMessage(`😭 removing ${ids.length} movies from trakt`);
 
-  console.log(`🗑 Removing ${ids.length} movies to stay under limit`);
+  logger.info(`🗑 Removing ${ids.length} movies to stay under limit`);
 
   await removeMoviesFromList(ids);
 }
@@ -114,15 +115,15 @@ export async function addMoviesBatchToTrakt(movies) {
 
     const result = response.data;
 
-    console.log("🎬 Batch Movie Response:", result);
+    logger.info("🎬 Batch Movie Response:", result);
 
     // ✅ Check rejected movies
    if (result.not_found?.movies?.length > 0) {
-  console.log("❌ Rejected movies:");
+  logger.info("❌ Rejected movies:");
   await sendMessage("❌ Rejected movies:");
 
   for (const value of result.not_found.movies) {
-    console.log(value.title);
+    logger.info(value.title);
     await sendMessage(value.title);
 
     await saveUnmatched(
@@ -138,7 +139,7 @@ export async function addMoviesBatchToTrakt(movies) {
     );
 
   } catch (error) {
-    console.log("Batch Movie Error:", error.response?.data || error.message);
+    logger.error("Batch Movie Error:", error.response?.data || error.message);
   }
 }
 
@@ -161,7 +162,7 @@ export async function addShowsBatchToTrakt(shows) {
 
     const result = response.data;
 
-    console.log("📺 Batch Show Response:", result);
+    logger.info("📺 Batch Show Response:", result);
 
     // ✅ Send added/existing counts
     await sendMessage(
@@ -170,11 +171,11 @@ export async function addShowsBatchToTrakt(shows) {
 
     // ✅ Check rejected shows
    if (result.not_found?.shows?.length > 0) {
-  console.log("❌ Rejected shows:");
+  logger.error("❌ Rejected shows:");
   await sendMessage("❌ Rejected shows:");
 
   for (const value of result.not_found.shows) {
-    console.log(value.title);
+    logger.info(value.title);
     await sendMessage(`${value.title} (${value.year || "Unknown Year"})`);
 
     await saveUnmatched(
@@ -186,7 +187,7 @@ export async function addShowsBatchToTrakt(shows) {
 }
 
   } catch (error) {
-    console.log("Batch Show Error:", error.response?.data || error.message);
+    logger.error("Batch Show Error:", error.response?.data || error.message);
   }
 }
 
@@ -225,10 +226,10 @@ export async function removeShowsFromList(showIds) {
       }
     );
 
-    console.log("🗑 Shows removed:", response.data);
+    logger.info("🗑 Shows removed:", response.data);
 
   } catch (error) {
-    console.log("Show delete error:", error.response?.data || error.message);
+    logger.error("Show delete error:", error.response?.data || error.message);
   }
 }
 export async function ensureShowListUnderLimit(incomingCount, limit = 80) {
@@ -244,7 +245,7 @@ export async function ensureShowListUnderLimit(incomingCount, limit = 80) {
   const ids = toRemove.map(item => item.show.ids.trakt);
   await sendMessage(`😭 removing ${ids.length} shows from trakt`)
 
-  console.log(`🗑 Removing ${ids.length} shows to stay under limit`);
+  logger.info(`🗑 Removing ${ids.length} shows to stay under limit`);
 
   await removeShowsFromList(ids);
 }
