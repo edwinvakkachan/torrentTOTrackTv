@@ -12,6 +12,7 @@ import {
 import { cleanupOldLogs } from "./utils/logCleanup.js";
 import { log } from "./timelog.js";
 import { isUnmatched } from "./db/checkUnmatched.js";
+import { callTrakt } from "./authfortrakt/trakt.js";
 
 /* ============================================================
    CENTRALIZED ERROR HANDLER
@@ -82,6 +83,7 @@ logger.info('🚀 TrackTv process started');
 await log();
 await cleanupOldLogs();
     await loginQB();
+    await callTrakt();
 
     // Fetch torrents
     const torrents = await safeExecute(
