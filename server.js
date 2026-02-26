@@ -9,7 +9,7 @@ import {
   ensureListUnderLimit,
   ensureShowListUnderLimit
 } from "./tracklist.js";
-
+import { cleanupOldLogs } from "./utils/logCleanup.js";
 import { log } from "./timelog.js";
 import { isUnmatched } from "./db/checkUnmatched.js";
 
@@ -79,7 +79,8 @@ async function processShows(shows) {
 async function processTodayTag() {
 logger.info('🚀 TrackTv process started');
 
-    await log();
+await log();
+await cleanupOldLogs();
     await loginQB();
 
     // Fetch torrents
