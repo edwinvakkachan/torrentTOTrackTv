@@ -2,10 +2,7 @@ import pkg from "pg";
 import logger from "./logger.js";
 const { Pool } = pkg;
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
+import pool from "../db/pool.js";
 
 export async function cleanupOldLogs() {
   try {

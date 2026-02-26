@@ -17,10 +17,7 @@ if (!DATABASE_URL || !TRAKT_CLIENT_ID || !TRAKT_CLIENT_SECRET) {
   throw new Error("Missing required environment variables");
 }
 
-const pool = new Pool({
-  connectionString: DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
+import pool from "../db/pool.js";
 
 const EXPIRY_MARGIN_MS = 60000; // 60 seconds safety margin
 

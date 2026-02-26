@@ -5,10 +5,7 @@ import { sendMessage } from "../telegram/sendTelegramMessage.js";
 
 const { Pool } = pkg;
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
+import pool from "../db/pool.js";
 
 const { combine, timestamp, printf, errors, json } = winston.format;
 
