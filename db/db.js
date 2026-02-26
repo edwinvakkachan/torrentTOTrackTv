@@ -57,6 +57,17 @@ await pool.query(`
   )
 `);
 
+
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS trakt_auth (
+    id SERIAL PRIMARY KEY,
+    access_token TEXT NOT NULL,
+    refresh_token TEXT NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`);
   return pool;
 }
 

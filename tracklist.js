@@ -5,6 +5,7 @@ import { sendMessage } from './telegram/sendTelegramMessage.js';
 import { delay } from './delay.js';
 import logger from "./utils/logger.js";
 import { saveUnmatched } from './db/saveUnmatched.js';
+import { getValidAccessToken } from './authfortrakt/traktAuth.js';
 
 
 export async function parseTitle(rawName) {
@@ -36,6 +37,7 @@ export async function parseTitle(rawName) {
 }
 
 export async function getMovieListItems() {
+  const token = await getValidAccessToken();
   const response = await axios.get(
     "https://api.trakt.tv/users/wreath1553/lists/movie-malayalam/items",
     {
@@ -43,7 +45,7 @@ export async function getMovieListItems() {
         "Content-Type": "application/json",
         "trakt-api-version": "2",
         "trakt-api-key": process.env.TRAKT_CLIENT_ID,
-        "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
+        "Authorization": `Bearer ${token}`
       }
     }
   );
@@ -54,6 +56,7 @@ export async function getMovieListItems() {
 
 export async function removeMoviesFromList(movieIds) {
   try {
+    const token = await getValidAccessToken();
     const response = await axios.post(
       "https://api.trakt.tv/users/wreath1553/lists/movie-malayalam/items/remove",
       {
@@ -66,7 +69,7 @@ export async function removeMoviesFromList(movieIds) {
           "Content-Type": "application/json",
           "trakt-api-version": "2",
           "trakt-api-key": process.env.TRAKT_CLIENT_ID,
-          "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
+          "Authorization": `Bearer ${token}`
         }
       }
     );
@@ -100,6 +103,7 @@ export async function ensureListUnderLimit(incomingCount, limit = 80) {
 
 export async function addMoviesBatchToTrakt(movies) {
   try {
+    const token = await getValidAccessToken();
     const response = await axios.post(
       "https://api.trakt.tv/users/wreath1553/lists/movie-malayalam/items",
       { movies },
@@ -108,7 +112,7 @@ export async function addMoviesBatchToTrakt(movies) {
           "Content-Type": "application/json",
           "trakt-api-version": "2",
           "trakt-api-key": process.env.TRAKT_CLIENT_ID,
-          "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
+          "Authorization": `Bearer ${token}`
         }
       }
     );
@@ -147,6 +151,7 @@ export async function addMoviesBatchToTrakt(movies) {
 
 export async function addShowsBatchToTrakt(shows) {
   try {
+    const token = await getValidAccessToken();
     const response = await axios.post(
       "https://api.trakt.tv/users/wreath1553/lists/showother/items",
       { shows },
@@ -155,7 +160,7 @@ export async function addShowsBatchToTrakt(shows) {
           "Content-Type": "application/json",
           "trakt-api-version": "2",
           "trakt-api-key": process.env.TRAKT_CLIENT_ID,
-          "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
+          "Authorization": `Bearer ${token}`
         }
       }
     );
@@ -192,6 +197,7 @@ export async function addShowsBatchToTrakt(shows) {
 }
 
 export async function getShowListItems() {
+  const token = await getValidAccessToken();
   const response = await axios.get(
     "https://api.trakt.tv/users/wreath1553/lists/showother/items",
     {
@@ -199,7 +205,7 @@ export async function getShowListItems() {
         "Content-Type": "application/json",
         "trakt-api-version": "2",
         "trakt-api-key": process.env.TRAKT_CLIENT_ID,
-        "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
+        "Authorization": `Bearer ${token}`
       }
     }
   );
@@ -209,6 +215,7 @@ export async function getShowListItems() {
 
 export async function removeShowsFromList(showIds) {
   try {
+    const token = await getValidAccessToken();
     const response = await axios.post(
       "https://api.trakt.tv/users/wreath1553/lists/showother/items/remove",
       {
@@ -221,7 +228,7 @@ export async function removeShowsFromList(showIds) {
           "Content-Type": "application/json",
           "trakt-api-version": "2",
           "trakt-api-key": process.env.TRAKT_CLIENT_ID,
-          "Authorization": `Bearer ${process.env.TRAKT_TOKEN}`
+          "Authorization": `Bearer ${token}`
         }
       }
     );
