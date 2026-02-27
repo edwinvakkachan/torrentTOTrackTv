@@ -24,10 +24,7 @@ if (!process.argv[2]) {
   process.exit(1);
 }
 
-const pool = new Pool({
-  connectionString: DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
-});
+import pool from "../db/pool.js";
 
 async function getToken(code) {
   try {

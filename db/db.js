@@ -1,16 +1,12 @@
 import pkg from "pg";
 const { Pool } = pkg;
 import 'dotenv/config';
-import { delay } from "../delay.js";
 
 
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
+
+import pool from "./pool.js";
+
 export async function initDB() {
  
  await pool.query(`
