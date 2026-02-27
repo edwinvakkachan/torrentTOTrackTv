@@ -13,6 +13,7 @@ import { cleanupOldLogs } from "./utils/logCleanup.js";
 import { log } from "./timelog.js";
 import { isUnmatched } from "./db/checkUnmatched.js";
 import { callTrakt } from "./authfortrakt/trakt.js";
+import { publishMessage } from "./queue/publishMessage.js";
 
 /* ============================================================
    CENTRALIZED ERROR HANDLER
@@ -78,6 +79,16 @@ async function processShows(shows) {
    MAIN WORKFLOW
 ============================================================ */
 async function processTodayTag() {
+  
+await publishMessage({
+  sourceApp: "torrentToTrakt",
+  eventType: "success",
+  payload: {
+    message: "TrackTv process completed 🎉",
+    time: new Date().toISOString()
+  }
+});
+
 logger.info('🚀 TrackTv process started');
 
 await log();

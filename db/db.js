@@ -68,6 +68,31 @@ await pool.query(`
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )
 `);
+
+await pool.query(`
+CREATE TABLE IF NOT EXISTS app_message_queue (
+  id SERIAL PRIMARY KEY,
+
+  source_app TEXT NOT NULL,             -- torrentToTrakt, radarrCleanup etc
+  event_type TEXT NOT NULL,             -- error, success, info
+  payload JSONB NOT NULL,               -- actual message content
+
+  target TEXT DEFAULT 'telegram',       -- telegram, email, webhook etc
+
+  status TEXT NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending','processing','sent','failed')),
+
+  retry_count INTEGER DEFAULT 0,
+  max_retries INTEGER DEFAULT 5,
+
+  scheduled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  processed_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_message_status
+ON app_message_queue(status, scheduled_at);
+`);
   return pool;
 }
 
