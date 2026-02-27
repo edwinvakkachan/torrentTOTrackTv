@@ -1,5 +1,4 @@
-import { delay } from "./delay.js";
-import { sendMessage } from "./telegram/sendTelegramMessage.js";
+
 import logger from "./utils/logger.js";
 import { loginQB, getTorrentsByCurrentDateTag } from "./qbittorrent/qb.js";
 import {
@@ -21,11 +20,9 @@ import { publishMessage } from "./queue/publishMessage.js";
 async function handleError(error, context = "Unknown") {
   console.error(`🔥 [${context}]`, error);
 
-  try {
-    await sendMessage(`🔥 TrackTv Error (${context})`);
-  } catch (notifyErr) {
-    console.error("Failed to send Telegram alert:", notifyErr.message);
-  }
+await publishMessage({
+  message: `🔥 [${context}]`
+});
 }
 
 /* ============================================================
@@ -79,14 +76,12 @@ async function processShows(shows) {
    MAIN WORKFLOW
 ============================================================ */
 async function processTodayTag() {
-  
+  await publishMessage({
+  message: '🥦🥦🥦🥦🥦🥦🥦🥦🥦'
+});
+
 await publishMessage({
-  sourceApp: "torrentToTrakt",
-  eventType: "success",
-  payload: {
-    message: "TrackTv process completed 🎉",
-    time: new Date().toISOString()
-  }
+  message: '🚀 TrackTv process started'
 });
 
 logger.info('🚀 TrackTv process started');
@@ -145,7 +140,15 @@ if (shows.length > 0) {
 await addShowsBatchToTrakt(shows);
 }
 logger.info('TrackTv process completed Completed 🎉');
-await sendMessage('traktv completed');
+
+await publishMessage({
+  message: 'TrackTv process completed Completed 🎉'
+});
+
+
+  await publishMessage({
+  message: '🥦🥦🥦🥦🥦🥦🥦🥦🥦'
+});
 
   process.exit(0)
 }

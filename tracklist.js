@@ -1,12 +1,10 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
 dotenv.config();
-import { sendMessage } from './telegram/sendTelegramMessage.js';
-import { delay } from './delay.js';
 import logger from "./utils/logger.js";
 import { saveUnmatched } from './db/saveUnmatched.js';
 import { getValidAccessToken } from './authfortrakt/traktAuth.js';
-
+import { publishMessage } from './queue/publishMessage.js';
 
 export async function parseTitle(rawName) {
 
@@ -92,7 +90,11 @@ export async function ensureListUnderLimit(incomingCount, limit = 80) {
 
   const toRemove = items.slice(0, overflow);
   const ids = toRemove.map(item => item.movie.ids.trakt);
-  await sendMessage(`😭 removing ${ids.length} movies from trakt`);
+
+
+  await publishMessage({
+  message: `😭 🗑 Removing ${ids.length} movies to stay under limit`
+});
 
   logger.info(`🗑 Removing ${ids.length} movies to stay under limit`);
 
@@ -124,11 +126,15 @@ export async function addMoviesBatchToTrakt(movies) {
     // ✅ Check rejected movies
    if (result.not_found?.movies?.length > 0) {
   logger.info("❌ Rejected movies:");
-  await sendMessage("❌ Rejected movies:");
+    await publishMessage({
+  message: "❌ Rejected movies:"
+});
 
   for (const value of result.not_found.movies) {
     logger.info(value.title);
-    await sendMessage(value.title);
+       await publishMessage({
+  message: `${value.title}`
+});
 
     await saveUnmatched(
       value.title,
@@ -138,9 +144,10 @@ export async function addMoviesBatchToTrakt(movies) {
   }
 }
 
-    await sendMessage(
-      `🎬 Added: ${result.added.movies}, Existing: ${result.existing.movies}`
-    );
+       await publishMessage({
+  message:  `🎬 Added: ${result.added.movies}, Existing: ${result.existing.movies}`
+});
+    
 
   } catch (error) {
     logger.error("Batch Movie Error:", error.response?.data || error.message);
@@ -170,19 +177,23 @@ export async function addShowsBatchToTrakt(shows) {
     logger.info("📺 Batch Show Response:", result);
 
     // ✅ Send added/existing counts
-    await sendMessage(
-      `📺 Added: ${result.added?.shows || 0}, Existing: ${result.existing?.shows || 0}`
-    );
+           await publishMessage({
+  message:  `📺 Added: ${result.added?.shows || 0}, Existing: ${result.existing?.shows || 0}`
+});
 
     // ✅ Check rejected shows
    if (result.not_found?.shows?.length > 0) {
   logger.error("❌ Rejected shows:");
-  await sendMessage("❌ Rejected shows:");
+             await publishMessage({
+  message:  "❌ Rejected shows:"
+});
+
 
   for (const value of result.not_found.shows) {
     logger.info(value.title);
-    await sendMessage(`${value.title} (${value.year || "Unknown Year"})`);
-
+           await publishMessage({
+  message:  `${value.title} (${value.year || "Unknown Year"})`
+});
     await saveUnmatched(
       value.title,
       value.year || null,
@@ -250,8 +261,9 @@ export async function ensureShowListUnderLimit(incomingCount, limit = 80) {
   const overflow = incomingCount - space;
   const toRemove = items.slice(0, overflow);
   const ids = toRemove.map(item => item.show.ids.trakt);
-  await sendMessage(`😭 removing ${ids.length} shows from trakt`)
-
+           await publishMessage({
+  message:  `🗑 Removing ${ids.length} shows to stay under limit`
+});
   logger.info(`🗑 Removing ${ids.length} shows to stay under limit`);
 
   await removeShowsFromList(ids);

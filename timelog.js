@@ -1,6 +1,6 @@
-import { sendMessage } from "./telegram/sendTelegramMessage.js";
-import logger from "./utils/logger.js";
 
+import logger from "./utils/logger.js";
+import { publishMessage } from "./queue/publishMessage.js";
 
 export async function log(message='⌚') {
   const time = new Date().toLocaleString('en-IN', {
@@ -8,6 +8,10 @@ export async function log(message='⌚') {
     hour12: false
   });
 
-await sendMessage(`[${time}] ${message}`)
-  logger.info(`[${time}] ${message}`);
+
+  await publishMessage({
+  message: `🕗 [${time}] ${message}`
+});
+
+  logger.info(`🕗 [${time}] ${message}`);
 }

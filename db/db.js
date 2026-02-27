@@ -69,6 +69,8 @@ await pool.query(`
   )
 `);
 
+// db setting for sending message to supabase 
+
 await pool.query(`
 CREATE TABLE IF NOT EXISTS app_message_queue (
   id SERIAL PRIMARY KEY,

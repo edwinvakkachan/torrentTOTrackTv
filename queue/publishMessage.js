@@ -1,12 +1,23 @@
 import pool from "../db/pool.js";
 
 export async function publishMessage({
-  sourceApp,
-  eventType,
-  payload,
+  message,
+  sourceApp = "unknown",
+  eventType = "info",
   target = "telegram",
-  scheduledAt = null
+  scheduledAt = null,
+  extra = {}
 }) {
+  if (!message) {
+    throw new Error("Message is required");
+  }
+
+  const payload = {
+    message,
+    ...extra,
+    time: new Date().toISOString()
+  };
+
   await pool.query(
     `
     INSERT INTO app_message_queue
