@@ -76,81 +76,87 @@ async function processShows(shows) {
    MAIN WORKFLOW
 ============================================================ */
 async function processTodayTag() {
+
+try {
+    await publishMessage({
+    message: '🥦🥦🥦🥦🥦🥦🥦🥦🥦'
+  });
+  
   await publishMessage({
-  message: '🥦🥦🥦🥦🥦🥦🥦🥦🥦'
-});
-
-await publishMessage({
-  message: '🚀 TrackTv process started'
-});
-
-logger.info('🚀 TrackTv process started');
-
-await log();
-await cleanupOldLogs();
-    await loginQB();
-    await callTrakt();
-
-    // Fetch torrents
-    const torrents = await safeExecute(
-      () => getTorrentsByCurrentDateTag(),
-      "Fetch Torrents"
-    );
-
-    if (!torrents) throw new Error("Failed to fetch torrents");
-
-    logger.info(`Today's torrent count: ${torrents.length}`);
-    const movies = [];
-    const shows = [];
-
-    for (const torrent of torrents) {
-      const parsed = await safeExecute(
-        () => parseTitle(torrent.name),
-        `Parse ${torrent.name}`
+    message: '🚀 TrackTv process started'
+  });
+  
+  logger.info('🚀 TrackTv process started');
+  
+  await log();
+  await cleanupOldLogs();
+      await loginQB();
+      await callTrakt();
+  
+      // Fetch torrents
+      const torrents = await safeExecute(
+        () => getTorrentsByCurrentDateTag(),
+        "Fetch Torrents"
       );
-
-      if (!parsed) continue;
-
-      const rejected = await safeExecute(
-        () => isUnmatched(parsed.title, parsed.year, parsed.type),
-        `Check unmatched ${parsed.title}`
-      );
-
-      if (rejected) {
-        logger.info(`⏭ Skipping already rejected: ${parsed.title}`);
-        continue;
+  
+      if (!torrents) throw new Error("Failed to fetch torrents");
+  
+      logger.info(`Today's torrent count: ${torrents.length}`);
+      const movies = [];
+      const shows = [];
+  
+      for (const torrent of torrents) {
+        const parsed = await safeExecute(
+          () => parseTitle(torrent.name),
+          `Parse ${torrent.name}`
+        );
+  
+        if (!parsed) continue;
+  
+        const rejected = await safeExecute(
+          () => isUnmatched(parsed.title, parsed.year, parsed.type),
+          `Check unmatched ${parsed.title}`
+        );
+  
+        if (rejected) {
+          logger.info(`⏭ Skipping already rejected: ${parsed.title}`);
+          continue;
+        }
+  
+        if (parsed.type === "movie") {
+          movies.push({ title: parsed.title, year: parsed.year });
+        }
+  
+        if (parsed.type === "show") {
+          shows.push({ title: parsed.title, year: parsed.year });
+        }
       }
-
-      if (parsed.type === "movie") {
-        movies.push({ title: parsed.title, year: parsed.year });
-      }
-
-      if (parsed.type === "show") {
-        shows.push({ title: parsed.title, year: parsed.year });
-      }
-    }
-
-if (movies.length > 0) {
-await ensureListUnderLimit(movies.length);
-await addMoviesBatchToTrakt(movies);
-}
-
-if (shows.length > 0) {
- await ensureShowListUnderLimit(shows.length);
-await addShowsBatchToTrakt(shows);
-}
-logger.info('TrackTv process completed Completed 🎉');
-
-await publishMessage({
-  message: 'TrackTv process completed Completed 🎉'
-});
-
-
+  
+  if (movies.length > 0) {
+  await ensureListUnderLimit(movies.length);
+  await addMoviesBatchToTrakt(movies);
+  }
+  
+  if (shows.length > 0) {
+   await ensureShowListUnderLimit(shows.length);
+  await addShowsBatchToTrakt(shows);
+  }
+  logger.info('TrackTv process completed Completed 🎉');
+  
   await publishMessage({
-  message: '🥦🥦🥦🥦🥦🥦🥦🥦🥦'
-});
-
-  process.exit(0)
+    message: 'TrackTv process completed Completed 🎉'
+  });
+  
+  
+    await publishMessage({
+    message: '🥦🥦🥦🥦🥦🥦🥦🥦🥦'
+  });
+  
+    process.exit(0)
+} catch (error) {
+  console.error('error in processtodattag',error)
+  process.exit(1)
+}
 }
 
 processTodayTag();
