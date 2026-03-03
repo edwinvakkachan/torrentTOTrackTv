@@ -51,6 +51,22 @@ export async function getMovieListItems() {
   return response.data;
 }
 
+export async function getpredvdMovieListItems() {
+  const token = await getValidAccessToken();
+  const response = await axios.get(
+    "https://api.trakt.tv/users/wreath1553/lists/predvd/items",
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "trakt-api-version": "2",
+        "trakt-api-key": process.env.TRAKT_CLIENT_ID,
+        "Authorization": `Bearer ${token}`
+      }
+    }
+  );
+
+  return response.data;
+}
 
 export async function removeMoviesFromList(movieIds) {
   try {
@@ -101,6 +117,28 @@ export async function ensureListUnderLimit(incomingCount, limit = 80) {
   await removeMoviesFromList(ids);
 }
 
+export async function ensurepredvdListUnderLimit(incomingCount, limit = 80) {
+  const items = await getpredvdMovieListItems();
+
+  const current = items.length;
+  const space = limit - current;
+
+  if (space >= incomingCount) return;
+
+  const overflow = incomingCount - space;
+
+  const toRemove = items.slice(0, overflow);
+  const ids = toRemove.map(item => item.movie.ids.trakt);
+
+
+  await publishMessage({
+  message: `😭 🗑 Removing ${ids.length} movies to stay under limit`
+});
+
+  logger.info(`🗑 Removing ${ids.length} movies to stay under limit`);
+
+  await removeMoviesFromList(ids);
+}
 
 
 export async function addMoviesBatchToTrakt(movies) {
@@ -154,7 +192,56 @@ export async function addMoviesBatchToTrakt(movies) {
   }
 }
 
+export async function addMoviesBatchToTraktpredvd(movies) {
+  try {
+    const token = await getValidAccessToken();
+    const response = await axios.post(
+      "https://api.trakt.tv/users/wreath1553/lists/predvd/items",
+      { movies },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "trakt-api-version": "2",
+          "trakt-api-key": process.env.TRAKT_CLIENT_ID,
+          "Authorization": `Bearer ${token}`
+        }
+      }
+    );
 
+    const result = response.data;
+
+    logger.info("🎬 Batch Movie Response:", result);
+
+    // ✅ Check rejected movies
+   if (result.not_found?.movies?.length > 0) {
+  logger.info("❌ Rejected movies:");
+    await publishMessage({
+  message: "❌ Rejected movies:"
+});
+
+  for (const value of result.not_found.movies) {
+    logger.info(value.title);
+       await publishMessage({
+  message: `${value.title}`
+});
+
+    await saveUnmatched(
+      value.title,
+      value.year || null,
+      "movie"
+    );
+  }
+}
+
+       await publishMessage({
+  message:  `🎬 Added: ${result.added.movies}, Existing: ${result.existing.movies}`
+});
+    
+
+  } catch (error) {
+    logger.error("Batch Movie Error:", error.response?.data || error.message);
+  }
+}
 
 export async function addShowsBatchToTrakt(shows) {
   try {

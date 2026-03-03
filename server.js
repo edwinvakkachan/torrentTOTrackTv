@@ -6,7 +6,9 @@ import {
   addMoviesBatchToTrakt,
   addShowsBatchToTrakt,
   ensureListUnderLimit,
-  ensureShowListUnderLimit
+  ensureShowListUnderLimit,
+  ensurepredvdListUnderLimit,
+  addMoviesBatchToTraktpredvd
 } from "./tracklist.js";
 import { cleanupOldLogs } from "./utils/logCleanup.js";
 import { log } from "./timelog.js";
@@ -104,40 +106,57 @@ try {
       logger.info(`Today's torrent count: ${torrents.length}`);
       const movies = [];
       const shows = [];
-  
-      for (const torrent of torrents) {
-       const name = torrent.name;
-       
-if (/\bpredvd\b/i.test(name)) {
-  console.log('👽👽👽👽👽 ignoring: ',name)
-  continue;
+      const predvd=[];
+
+for (const torrent of torrents) {
+  const name = torrent.name.toLowerCase();
+
+  const isPreDVD = /\bpredvd\b/i.test(name);
+
+  const parsed = await safeExecute(
+    () => parseTitle(name),
+    `Parse ${name}`
+  );
+
+  if (!parsed) continue;
+
+  const rejected = await safeExecute(
+    () => isUnmatched(parsed.title, parsed.year, parsed.type),
+    `Check unmatched ${parsed.title}`
+  );
+
+  if (rejected) {
+    logger.info(`⏭ Skipping already rejected: ${parsed.title}`);
+    continue;
+  }
+
+  const item = { title: parsed.title, year: parsed.year };
+
+  if (isPreDVD) {
+    predvd.push(item);
+    continue; // Don't mix with normal movies/shows
+  }
+
+  if (parsed.type === "movie") {
+    movies.push(item);
+  }
+
+  if (parsed.type === "show") {
+    shows.push(item);
+  }
 }
-        const parsed = await safeExecute(
-          () => parseTitle(torrent.name),
-          `Parse ${torrent.name}`
-        );
   
-        if (!parsed) continue;
-  
-        const rejected = await safeExecute(
-          () => isUnmatched(parsed.title, parsed.year, parsed.type),
-          `Check unmatched ${parsed.title}`
-        );
-  
-        if (rejected) {
-          logger.info(`⏭ Skipping already rejected: ${parsed.title}`);
-          continue;
-        }
-  
-        if (parsed.type === "movie") {
-          movies.push({ title: parsed.title, year: parsed.year });
-        }
-  
-        if (parsed.type === "show") {
-          shows.push({ title: parsed.title, year: parsed.year });
-        }
-      }
-  
+
+if (predvd.length > 0) {
+  logger.info(`Processing PreDVD list: ${predvd.length}`);
+
+    await ensurepredvdListUnderLimit(predvd.length)
+
+    await addMoviesBatchToTraktpredvd(predvd)
+}
+
+
+
   if (movies.length > 0) {
   await ensureListUnderLimit(movies.length);
   await addMoviesBatchToTrakt(movies);
