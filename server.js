@@ -106,6 +106,12 @@ try {
       const shows = [];
   
       for (const torrent of torrents) {
+       const name = torrent.name;
+       
+if (/\bpredvd\b/i.test(name)) {
+  console.log('👽👽👽👽👽 ignoring: ',name)
+  continue;
+}
         const parsed = await safeExecute(
           () => parseTitle(torrent.name),
           `Parse ${torrent.name}`
