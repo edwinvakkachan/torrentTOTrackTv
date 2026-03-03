@@ -94,6 +94,32 @@ export async function removeMoviesFromList(movieIds) {
   }
 }
 
+export async function removeMoviesFrompredvdList(movieIds) {
+  try {
+    const token = await getValidAccessToken();
+    const response = await axios.post(
+      "https://api.trakt.tv/users/wreath1553/lists/predvd/items/remove",
+      {
+        movies: movieIds.map(id => ({
+          ids: { trakt: id }
+        }))
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "trakt-api-version": "2",
+          "trakt-api-key": process.env.TRAKT_CLIENT_ID,
+          "Authorization": `Bearer ${token}`
+        }
+      }
+    );
+
+    logger.info("🗑 Removed response:", response.data);
+  } catch (error) {
+    logger.error("Delete error:", error.response?.data || error.message);
+  }
+}
+
 export async function ensureListUnderLimit(incomingCount, limit = 80) {
   const items = await getMovieListItems();
 
@@ -137,7 +163,7 @@ export async function ensurepredvdListUnderLimit(incomingCount, limit = 80) {
 
   logger.info(`🗑 Removing ${ids.length} movies to stay under limit`);
 
-  await removeMoviesFromList(ids);
+  await removeMoviesFrompredvdList(ids);
 }
 
 
