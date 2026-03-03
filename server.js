@@ -110,12 +110,11 @@ try {
 
 for (const torrent of torrents) {
   const name = torrent.name.toLowerCase();
-  console.log(name)
+
 
   // const isPreDVD = /\bpredvd\b/i.test(name);
 
   const isPreDVD = name.includes('predvd');
-  console.log(isPreDVD)
 
   const parsed = await safeExecute(
     () => parseTitle(name),
@@ -137,7 +136,7 @@ for (const torrent of torrents) {
   const item = { title: parsed.title, year: parsed.year };
 
   if (isPreDVD) {
-    console.log('the item is',item)
+    console.log('🐶 🐶 🐶 the item is', item)
     predvd.push(item);
     continue; // Don't mix with normal movies/shows
   }
