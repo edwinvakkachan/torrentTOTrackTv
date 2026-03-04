@@ -1,11 +1,9 @@
 import pkg from "pg";
-const { Pool } = pkg;
+// const { Pool } = pkg;
 import 'dotenv/config';
-
-
-
-
 import pool from "./pool.js";
+
+
 
 export async function initDB() {
  
@@ -36,12 +34,35 @@ export async function initDB() {
 `);
 
 await pool.query(`
-  CREATE INDEX IF NOT EXISTS idx_trakt_status
-  ON trakt_review_queue(status);
+ALTER TABLE trakt_review_queue
+ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending';
 
-  CREATE INDEX IF NOT EXISTS idx_trakt_created
-  ON trakt_review_queue(created_at DESC);
+ALTER TABLE trakt_review_queue
+ADD COLUMN IF NOT EXISTS manually_added BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE trakt_review_queue
+ADD COLUMN IF NOT EXISTS retry_count INTEGER DEFAULT 0;
+
+ALTER TABLE trakt_review_queue
+ADD COLUMN IF NOT EXISTS notes TEXT;
+
+ALTER TABLE trakt_review_queue
+ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE trakt_review_queue
+ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP;
 `);
+
+
+// await pool.query(`
+// CREATE INDEX IF NOT EXISTS idx_trakt_status
+// ON trakt_review_queue(status)
+// `);
+
+// await pool.query(`
+// CREATE INDEX IF NOT EXISTS idx_trakt_created
+// ON trakt_review_queue(created_at DESC)
+// `);
 
 await pool.query(`
   CREATE TABLE IF NOT EXISTS app_logs (
@@ -91,6 +112,36 @@ CREATE TABLE IF NOT EXISTS app_message_queue (
 CREATE INDEX IF NOT EXISTS idx_message_status
 ON app_message_queue(status, scheduled_at);
 `);
+
+//cleaning predvd with movie malayalam
+
+await pool.query(`
+CREATE TABLE IF NOT EXISTS radarr_cleanup_queue (
+  id SERIAL PRIMARY KEY,
+
+  title TEXT NOT NULL,
+  year INTEGER NOT NULL,
+
+  trakt_id INTEGER,
+
+  source TEXT DEFAULT 'predvd_upgrade',
+
+  status TEXT NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending','processing','completed','failed')),
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  processed_at TIMESTAMP
+);
+`);
+
+// await pool.query(`
+// CREATE INDEX IF NOT EXISTS idx_radarr_cleanup_status
+// ON radarr_cleanup_queue(status, created_at);
+// `);
+
+
+
+
   return pool;
 }
 

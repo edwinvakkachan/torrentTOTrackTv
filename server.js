@@ -15,6 +15,8 @@ import { log } from "./timelog.js";
 import { isUnmatched } from "./db/checkUnmatched.js";
 import { callTrakt } from "./authfortrakt/trakt.js";
 import { publishMessage } from "./queue/publishMessage.js";
+import { processUpgrades } from "./predvdCleanup.js";
+import{initDB} from "./db/db.js"
 
 /* ============================================================
    CENTRALIZED ERROR HANDLER
@@ -89,7 +91,7 @@ try {
   });
   
   logger.info('🚀 TrackTv process started');
-  
+  await initDB()
   await log();
   await cleanupOldLogs();
       await loginQB();
@@ -170,6 +172,10 @@ if (predvd.length > 0) {
    await ensureShowListUnderLimit(shows.length);
   await addShowsBatchToTrakt(shows);
   }
+
+
+await processUpgrades();
+
   logger.info('TrackTv process completed Completed 🎉');
   
   await publishMessage({

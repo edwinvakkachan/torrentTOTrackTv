@@ -1,9 +1,11 @@
-import { initDB } from "./db.js";
+
 import logger from "../utils/logger.js";
+import pool from "./pool.js";
+
 
 export async function saveUnmatched(title, year, type) {
-  const db = await initDB();
 
+const db = pool;
   try {
 await db.query(
   `INSERT INTO trakt_review_queue (title, year, type)

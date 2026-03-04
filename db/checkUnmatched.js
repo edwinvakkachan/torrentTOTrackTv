@@ -1,8 +1,8 @@
-import { initDB } from "./db.js";
+import pool from "./pool.js";
 
 export async function isUnmatched(title, year, type) {
-  const db = await initDB();
 
+const db = pool;
 const result = await db.query(
   `SELECT 1 FROM trakt_review_queue
    WHERE title = $1
