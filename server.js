@@ -136,7 +136,7 @@ for (const torrent of torrents) {
   const item = { title: parsed.title, year: parsed.year };
 
   if (isPreDVD) {
-    console.log('🐶 🐶 🐶 the item is', item)
+    console.log('🐶 🐶 🐶 Found PreDVD', item)
     predvd.push(item);
     continue; // Don't mix with normal movies/shows
   }
