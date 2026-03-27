@@ -17,7 +17,8 @@ import { callTrakt } from "./authfortrakt/trakt.js";
 import { publishMessage } from "./queue/publishMessage.js";
 import { processUpgrades } from "./predvdCleanup.js";
 import{initDB} from "./db/db.js"
-
+import { triggerHomeAssistantWebhookWhenErrorOccurs } from "./homeassistant/homeAssistantWebhook.js";
+import { retry } from "./homeassistant/retryWrapper.js";
 /* ============================================================
    CENTRALIZED ERROR HANDLER
 ============================================================ */
@@ -82,6 +83,7 @@ async function processShows(shows) {
 async function processTodayTag() {
 
 try {
+  console.log('🥦🥦🥦🥦🥦🥦🥦🥦🥦');
     await publishMessage({
     message: '🥦🥦🥦🥦🥦🥦🥦🥦🥦'
   });
@@ -182,14 +184,24 @@ await processUpgrades();
     message: 'TrackTv process completed Completed 🎉'
   });
   
-  
+
     await publishMessage({
     message: '🥦🥦🥦🥦🥦🥦🥦🥦🥦'
   });
+
+
+
+console.log('🥦🥦🥦🥦🥦🥦🥦🥦🥦');
   
     process.exit(0)
 } catch (error) {
   console.error('error in processtodattag',error)
+      await retry(
+  triggerHomeAssistantWebhookWhenErrorOccurs,
+  { status: "error" },
+  "homeassistant-error",
+  5
+);
   process.exit(1)
 }
 }
