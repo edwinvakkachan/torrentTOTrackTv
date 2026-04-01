@@ -32,24 +32,68 @@ async function findPredvdUpgrades( ) {
   const predvdList = await getListItems("predvd");
   const normalList = await getListItems("movie-malayalam");
 
+ for (const a of normalList){
+
+  if(a.type !=="movie"){
+      await publishMessage({
+    message: `👺👺 There is a TV show called ${a.show.title} inside the movielist-malayalam, remove it 👺👺`
+  });
+  console.log(`👺👺👺👺👺👺👺👺👺👺👺👺👺👺👺 \n There is a TV show called \n ${a.show.title} \n inside the movielist-malayalam, remove it \n 👺👺👺👺👺👺👺👺👺👺👺👺👺👺👺👺`)
+  }
+
+ }
+
   const upgrades = [];
+
+//   for (const p of predvdList) {
+    
+//  if (p.type !== "movie") {
+//   continue};
+
+
+//  if (!p.movie) continue;
+
+
+//  const match = normalList.find(n => {
+//     if (n.type !== "movie") return false;
+//     if (!n.movie) return false;
+
+//     return (
+//       n.movie.title.toLowerCase() === p.movie.title.toLowerCase() &&
+//       n.movie.year === p.movie.year
+//     );
+//   });
+
+//     if (match) {
+//       upgrades.push({
+//         title: p.movie.title,
+//         year: p.movie.year,
+//         trakt_id: p.movie.ids.trakt
+//       });
+//     }
+//   }
 
   for (const p of predvdList) {
 
-    const match = normalList.find(
-      n =>
-        n.movie.title.toLowerCase() === p.movie.title.toLowerCase() &&
-        n.movie.year === p.movie.year
-    );
+  if (!p.movie) continue;
 
-    if (match) {
-      upgrades.push({
-        title: p.movie.title,
-        year: p.movie.year,
-        trakt_id: p.movie.ids.trakt
-      });
-    }
+  const match = normalList.find(n => {
+    if (!n.movie) return false;
+
+    return (
+      n.movie.title.toLowerCase() === p.movie.title.toLowerCase() &&
+      n.movie.year === p.movie.year
+    );
+  });
+
+  if (match) {
+    upgrades.push({
+      title: p.movie.title,
+      year: p.movie.year,
+      trakt_id: p.movie.ids.trakt
+    });
   }
+}
 
   return upgrades;
 }
