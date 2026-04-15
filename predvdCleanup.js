@@ -43,35 +43,9 @@ async function findPredvdUpgrades( ) {
 
  }
 
+
   const upgrades = [];
 
-//   for (const p of predvdList) {
-    
-//  if (p.type !== "movie") {
-//   continue};
-
-
-//  if (!p.movie) continue;
-
-
-//  const match = normalList.find(n => {
-//     if (n.type !== "movie") return false;
-//     if (!n.movie) return false;
-
-//     return (
-//       n.movie.title.toLowerCase() === p.movie.title.toLowerCase() &&
-//       n.movie.year === p.movie.year
-//     );
-//   });
-
-//     if (match) {
-//       upgrades.push({
-//         title: p.movie.title,
-//         year: p.movie.year,
-//         trakt_id: p.movie.ids.trakt
-//       });
-//     }
-//   }
 
   for (const p of predvdList) {
 
@@ -141,11 +115,11 @@ export async function processUpgrades() {
  const upgrades = await findPredvdUpgrades();
  
  if (!upgrades.length){
-    logger.info('Nothing to upgrade');
+    logger.info('Nothing to upgrade from predvd');
     return;
  } 
 
-  console.log("Upgraded movies:", upgrades);
+  console.log("predvd movie Upgraded:", upgrades);
 
 if (upgrades.length) {
 

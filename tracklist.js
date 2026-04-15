@@ -130,7 +130,8 @@ export async function ensureListUnderLimit(incomingCount, limit = 80) {
 
   const overflow = incomingCount - space;
 
-  const toRemove = items.slice(0, overflow);
+  // const toRemove = items.slice(0, overflow);
+  const toRemove = items.slice(-overflow);
   const ids = toRemove.map(item => item.movie.ids.trakt);
 
 
