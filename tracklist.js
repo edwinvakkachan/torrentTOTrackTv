@@ -199,7 +199,8 @@ export async function addMoviesBatchToTrakt(movies) {
 
     const result = response.data;
 
-    logger.info("🎬 Batch Movie Response:", result);
+    logger.info("🎬 Batch Movie Response:");
+    console.log(`total added movies: ${result.added.movies} \n Existing: ${result.existing.movies}`)
   
     // ✅ Check rejected movies
    if (result.not_found?.movies?.length > 0) {
@@ -250,7 +251,8 @@ export async function addMoviesBatchToTraktpredvd(movies) {
 
     const result = response.data;
 
-    logger.info("🎬 Batch Movie Response:", result);
+    logger.info("🎬 Batch Movie Response:");
+    console.log(`total added PreDVD : ${result.added.movies} \n Existing: ${result.existing.movies}`)
 
     // ✅ Check rejected movies
    if (result.not_found?.movies?.length > 0) {
@@ -301,7 +303,8 @@ export async function addShowsBatchToTrakt(shows) {
 
     const result = response.data;
 
-    logger.info("📺 Batch Show Response:", result);
+    logger.info("📺 Batch Show Response:");
+    console.log(`total added shows: ${result.added?.shows || 0} \n Existing: ${result.existing?.shows || 0}`)
 
     // ✅ Send added/existing counts
            await publishMessage({
