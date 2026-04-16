@@ -113,13 +113,20 @@ async function removeFromPreDVD(ids) {
 export async function processUpgrades() {
 
  const upgrades = await findPredvdUpgrades();
+
+
  
  if (!upgrades.length){
     logger.info('Nothing to upgrade from predvd');
     return;
  } 
 
-  console.log("predvd movie Upgraded:", upgrades);
+console.log('Following movies are going to upgrade');
+ for (const x of upgrades){
+  console.log(x.title);
+ }
+
+ 
 
 if (upgrades.length) {
 

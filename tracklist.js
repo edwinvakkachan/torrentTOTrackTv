@@ -135,6 +135,13 @@ export async function ensureListUnderLimit(incomingCount, limit = 80) {
   const ids = toRemove.map(item => item.movie.ids.trakt);
 
 
+  console.log('⚠️ following movies are removing from the list to stay under the limit');
+
+  for (const x of toRemove){
+    console.log(`❗${x.movie.title}`);
+  }
+
+
   await publishMessage({
   message: `😭 🗑 Removing ${ids.length} movies to stay under limit`
 });
