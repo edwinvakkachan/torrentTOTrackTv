@@ -161,16 +161,21 @@ export async function ensurepredvdListUnderLimit(incomingCount, limit = 80) {
 
   const overflow = incomingCount - space;
 
-  // const toRemove = items.slice(0, overflow);
   const toRemove = items.slice(-overflow);
   const ids = toRemove.map(item => item.movie.ids.trakt);
 
 
   await publishMessage({
-  message: `😭 🗑 Removing ${ids.length} movies to stay under limit`
+  message: `😭 🗑 Removing ${ids.length} Predvd movies to stay under limit`
 });
 
-  logger.info(`🗑 Removing ${ids.length} movies to stay under limit`);
+console.log('⚠️ following predvd movies are removing from the list to stay under the limit');
+
+  for (const x of toRemove){
+    console.log(`❗${x.movie.title}`);
+  }
+
+  logger.info(`🗑 Removing ${ids.length} Predvd movies to stay under limit`);
 
   await removeMoviesFrompredvdList(ids);
 }
@@ -195,7 +200,7 @@ export async function addMoviesBatchToTrakt(movies) {
     const result = response.data;
 
     logger.info("🎬 Batch Movie Response:", result);
-
+  
     // ✅ Check rejected movies
    if (result.not_found?.movies?.length > 0) {
   logger.info("❌ Rejected movies:");
@@ -372,7 +377,7 @@ export async function removeShowsFromList(showIds) {
     logger.error("Show delete error:", error.response?.data || error.message);
   }
 }
-export async function ensureShowListUnderLimit(incomingCount, limit = 20) {
+export async function ensureShowListUnderLimit(incomingCount, limit = 80) {
   const items = await getShowListItems();
 
   const current = items.length;
@@ -382,6 +387,14 @@ export async function ensureShowListUnderLimit(incomingCount, limit = 20) {
 
   const overflow = incomingCount - space;
   const toRemove = items.slice(-overflow);
+
+console.log('⚠️ following shows  are removing from the list to stay under the limit');
+
+  for (const x of toRemove){
+    console.log(`❗${x.show.title}`);
+  }
+
+  
   const ids = toRemove.map(item => item.show.ids.trakt);
            await publishMessage({
   message:  `🗑 Removing ${ids.length} shows to stay under limit`
