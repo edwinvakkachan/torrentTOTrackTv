@@ -161,7 +161,8 @@ export async function ensurepredvdListUnderLimit(incomingCount, limit = 80) {
 
   const overflow = incomingCount - space;
 
-  const toRemove = items.slice(0, overflow);
+  // const toRemove = items.slice(0, overflow);
+  const toRemove = items.slice(-overflow);
   const ids = toRemove.map(item => item.movie.ids.trakt);
 
 
@@ -371,7 +372,7 @@ export async function removeShowsFromList(showIds) {
     logger.error("Show delete error:", error.response?.data || error.message);
   }
 }
-export async function ensureShowListUnderLimit(incomingCount, limit = 80) {
+export async function ensureShowListUnderLimit(incomingCount, limit = 20) {
   const items = await getShowListItems();
 
   const current = items.length;
@@ -380,7 +381,7 @@ export async function ensureShowListUnderLimit(incomingCount, limit = 80) {
   if (space >= incomingCount) return;
 
   const overflow = incomingCount - space;
-  const toRemove = items.slice(0, overflow);
+  const toRemove = items.slice(-overflow);
   const ids = toRemove.map(item => item.show.ids.trakt);
            await publishMessage({
   message:  `🗑 Removing ${ids.length} shows to stay under limit`
