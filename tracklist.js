@@ -224,7 +224,7 @@ export async function addMoviesBatchToTrakt(movies) {
 }
 
        await publishMessage({
-  message:  `🎬 Added: ${result.added.movies}, Existing: ${result.existing.movies}`
+  message:  `🎬 Added movies: ${result.added.movies}, Existing movies: ${result.existing.movies}`
 });
     
 
@@ -308,7 +308,7 @@ export async function addShowsBatchToTrakt(shows) {
 
     // ✅ Send added/existing counts
            await publishMessage({
-  message:  `📺 Added: ${result.added?.shows || 0}, Existing: ${result.existing?.shows || 0}`
+  message:  `📺 Added shows: ${result.added?.shows || 0}, Existing shows: ${result.existing?.shows || 0}`
 });
 
     // ✅ Check rejected shows

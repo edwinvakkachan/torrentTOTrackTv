@@ -116,6 +116,7 @@ for (const torrent of torrents) {
   const name = torrent.name.toLowerCase();
 
 
+
   // const isPreDVD = /\bpredvd\b/i.test(name);
 
   const isPreDVD = name.includes('predvd');
@@ -140,11 +141,9 @@ for (const torrent of torrents) {
   const item = { title: parsed.title, year: parsed.year };
 
   if (isPreDVD) {
-    console.log('🐶 🐶 🐶 Found PreDVD', item)
     predvd.push(item);
     continue; // Don't mix with normal movies/shows
   }
-
   if (parsed.type === "movie") {
     movies.push(item);
   }
@@ -153,6 +152,28 @@ for (const torrent of torrents) {
     shows.push(item);
   }
 }
+
+
+console.log(`👽👽👽👽👽todays details 👽👽👽👽`);
+
+if(predvd){
+  for (const x of predvd){
+    console.log(`predvd: ${x.title} ${x.year}`)
+  }
+}
+
+if(movies){
+  for (const x of movies){
+    console.log(`movies: ${x.title} ${x.year}`)
+  }
+}
+
+if(shows){
+  for (const x of shows){
+    console.log(`shows: ${x.title} ${x.year}`)
+  }
+}
+
   
 
 if (predvd.length > 0) {
