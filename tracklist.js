@@ -276,7 +276,7 @@ export async function addMoviesBatchToTraktpredvd(movies) {
 }
 
        await publishMessage({
-  message:  `🎬 Added: ${result.added.movies}, Existing: ${result.existing.movies}`
+  message:  `🎬 Added predvd movies: ${result.added.movies}, Existing predvd movies: ${result.existing.movies}`
 });
     
 
