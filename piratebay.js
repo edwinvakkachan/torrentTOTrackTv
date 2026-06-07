@@ -84,13 +84,13 @@ console.log('shows length:' ,shows.length)
 
 if(movies){
   for (const x of movies){
-    console.log(`movies: ${x.title} ${x.year}`)
+    console.log(`movies: ${x.title} `)
   }
 }
 
 if(shows){
   for (const x of shows){
-    console.log(`shows: ${x.title} ${x.year}`)
+    console.log(`shows: ${x.title} `)
   }
 }
 
@@ -104,7 +104,7 @@ if(shows){
   }
   
   if (shows.length > 0) {
-   await ensureShowListUnderLimit(shows.length);
+   await ensureEnglishShowListUnderLimit(shows.length);
   await addEnglishShowsBatchToTrakt(shows);
   }
 
