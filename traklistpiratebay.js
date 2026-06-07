@@ -7,31 +7,35 @@ import { getValidAccessToken } from './authfortrakt/traktAuth.js';
 import { publishMessage } from './queue/publishMessage.js';
 
 export async function parseTitle(rawName) {
+  let name = rawName.toLowerCase().trim();
 
-  let name = rawName;
+  // TV Show
+  const showMatch = name.match(/(.+?)\s+s(\d{1,2})e(\d{1,2})/i);
 
-  // 1️⃣ Remove website prefix completely
-  if (name.includes(" - ")) {
-    name = name.split(" - ").slice(1).join(" - ");
+  if (showMatch) {
+    return {
+      title: showMatch[1]
+        .replace(/[.\-_]+/g, " ")
+        .trim(),
+      year: null,
+      type: "show"
+    };
   }
 
-  name = name.trim();
+  // Movie with year anywhere
+  const movieMatch = name.match(/(.+?)\s+(19\d{2}|20\d{2})/);
 
-  // 2️⃣ Extract title and year
-  const match = name.match(/(.+?)\s*\((\d{4})\)/);
-  if (!match) return null;
+  if (movieMatch) {
+    return {
+      title: movieMatch[1]
+        .replace(/[.\-_]+/g, " ")
+        .trim(),
+      year: parseInt(movieMatch[2]),
+      type: "movie"
+    };
+  }
 
-  let title = match[1].trim();
-  const year = parseInt(match[2]);
-
-  // 3️⃣ Detect show
-  const isSeries = /S\d{1,2}|E\d{1,2}|Season|EP|Episode/i.test(name);
-
-  return {
-    title,
-    year,
-    type: isSeries ? "show" : "movie"
-  };
+  return null;
 }
 
 export async function getEnglishMovieListItems() {
