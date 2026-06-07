@@ -49,7 +49,10 @@ for (const torrent of torrents) {
     `Parse ${name}`
   );
 
-  if (!parsed) continue;
+  if (!parsed) {
+  console.log("FAILED PARSE:", name);
+  continue;
+}
 
   const rejected = await safeExecute(
     () => isUnmatched(parsed.title, parsed.year, parsed.type),
