@@ -6,6 +6,14 @@ import { publishMessage } from "./queue/publishMessage.js";
 import { triggerHomeAssistantWebhookWhenErrorOccurs } from "./homeassistant/homeAssistantWebhook.js";
 import { retry } from "./homeassistant/retryWrapper.js";
 
+async function handleError(error, context = "Unknown") {
+  console.error(`🔥 [${context}]`, error);
+
+await publishMessage({
+  message: `🔥 [${context}]`
+});
+}
+
 async function safeExecute(fn, context) {
   try {
     return await fn();
@@ -18,8 +26,9 @@ async function safeExecute(fn, context) {
 
 export async function piratebay(){
     try {
-
     
+
+
     const torrents = await safeExecute(
           () => getpiratebayTorrentsByCurrentDateTag(),
           "Fetch Torrents"
