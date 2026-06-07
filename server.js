@@ -19,6 +19,7 @@ import { processUpgrades } from "./predvdCleanup.js";
 import{initDB} from "./db/db.js"
 import { triggerHomeAssistantWebhookWhenErrorOccurs } from "./homeassistant/homeAssistantWebhook.js";
 import { retry } from "./homeassistant/retryWrapper.js";
+import { piratebay } from "./piratebay.js";
 /* ============================================================
    CENTRALIZED ERROR HANDLER
 ============================================================ */
@@ -198,6 +199,8 @@ if (predvd.length > 0) {
 
 
 await processUpgrades();
+
+await piratebay();
 
   logger.info('TrackTv process completed Completed 🎉');
   

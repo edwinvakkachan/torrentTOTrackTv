@@ -34,10 +34,10 @@ export async function parseTitle(rawName) {
   };
 }
 
-export async function getMovieListItems() {
+export async function getEnglishMovieListItems() {
   const token = await getValidAccessToken();
   const response = await axios.get(
-    "https://api.trakt.tv/users/wreath1553/lists/movie-malayalam/items",
+    "https://api.trakt.tv/users/wreath1553/lists/movie-english/items",
     {
       headers: {
         "Content-Type": "application/json",
@@ -51,28 +51,13 @@ export async function getMovieListItems() {
   return response.data;
 }
 
-export async function getpredvdMovieListItems() {
-  const token = await getValidAccessToken();
-  const response = await axios.get(
-    "https://api.trakt.tv/users/wreath1553/lists/predvd/items",
-    {
-      headers: {
-        "Content-Type": "application/json",
-        "trakt-api-version": "2",
-        "trakt-api-key": process.env.TRAKT_CLIENT_ID,
-        "Authorization": `Bearer ${token}`
-      }
-    }
-  );
 
-  return response.data;
-}
 
-export async function removeMoviesFromList(movieIds) {
+export async function removeMoviesFromEnglishList(movieIds) {
   try {
     const token = await getValidAccessToken();
     const response = await axios.post(
-      "https://api.trakt.tv/users/wreath1553/lists/movie-malayalam/items/remove",
+      "https://api.trakt.tv/users/wreath1553/lists/movie-english/items/remove",
       {
         movies: movieIds.map(id => ({
           ids: { trakt: id }
@@ -94,34 +79,10 @@ export async function removeMoviesFromList(movieIds) {
   }
 }
 
-export async function removeMoviesFrompredvdList(movieIds) {
-  try {
-    const token = await getValidAccessToken();
-    const response = await axios.post(
-      "https://api.trakt.tv/users/wreath1553/lists/predvd/items/remove",
-      {
-        movies: movieIds.map(id => ({
-          ids: { trakt: id }
-        }))
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "trakt-api-version": "2",
-          "trakt-api-key": process.env.TRAKT_CLIENT_ID,
-          "Authorization": `Bearer ${token}`
-        }
-      }
-    );
 
-    logger.info("🗑 Removed response:", response.data);
-  } catch (error) {
-    logger.error("Delete error:", error.response?.data || error.message);
-  }
-}
 
-export async function ensureListUnderLimit(incomingCount, limit = 80) {
-  const items = await getMovieListItems();
+export async function ensureEnglishListUnderLimit(incomingCount, limit = 80) {
+  const items = await getEnglishMovieListItems();
 
   const current = items.length;
   const space = limit - current;
@@ -148,44 +109,17 @@ export async function ensureListUnderLimit(incomingCount, limit = 80) {
 
   logger.info(`🗑 Removing ${ids.length} movies to stay under limit`);
 
-  await removeMoviesFromList(ids);
-}
-
-export async function ensurepredvdListUnderLimit(incomingCount, limit = 80) {
-  const items = await getpredvdMovieListItems();
-
-  const current = items.length;
-  const space = limit - current;
-
-  if (space >= incomingCount) return;
-
-  const overflow = incomingCount - space;
-
-  const toRemove = items.slice(-overflow);
-  const ids = toRemove.map(item => item.movie.ids.trakt);
-
-
-  await publishMessage({
-  message: `😭 🗑 Removing ${ids.length} Predvd movies to stay under limit`
-});
-
-console.log('⚠️ following predvd movies are removing from the list to stay under the limit');
-
-  for (const x of toRemove){
-    console.log(`❗${x.movie.title}`);
-  }
-
-  logger.info(`🗑 Removing ${ids.length} Predvd movies to stay under limit`);
-
-  await removeMoviesFrompredvdList(ids);
+  await removeMoviesFromEnglishList(ids);
 }
 
 
-export async function addMoviesBatchToTrakt(movies) {
+
+
+export async function addEnglishMoviesBatchToTrakt(movies) {
   try {
     const token = await getValidAccessToken();
     const response = await axios.post(
-      "https://api.trakt.tv/users/wreath1553/lists/movie-malayalam/items",
+      "https://api.trakt.tv/users/wreath1553/lists/movie-english/items",
       { movies },
       {
         headers: {
@@ -233,63 +167,13 @@ export async function addMoviesBatchToTrakt(movies) {
   }
 }
 
-export async function addMoviesBatchToTraktpredvd(movies) {
+
+
+export async function addEnglishShowsBatchToTrakt(shows) {
   try {
     const token = await getValidAccessToken();
     const response = await axios.post(
-      "https://api.trakt.tv/users/wreath1553/lists/predvd/items",
-      { movies },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "trakt-api-version": "2",
-          "trakt-api-key": process.env.TRAKT_CLIENT_ID,
-          "Authorization": `Bearer ${token}`
-        }
-      }
-    );
-
-    const result = response.data;
-
-    logger.info("🎬 Batch Movie Response:");
-    console.log(`total added PreDVD : ${result.added.movies} \n Existing: ${result.existing.movies}`)
-
-    // ✅ Check rejected movies
-   if (result.not_found?.movies?.length > 0) {
-  logger.info("❌ Rejected movies:");
-    await publishMessage({
-  message: "❌ Rejected movies:"
-});
-
-  for (const value of result.not_found.movies) {
-    logger.info(value.title);
-       await publishMessage({
-  message: `${value.title}`
-});
-
-    await saveUnmatched(
-      value.title,
-      value.year || null,
-      "movie"
-    );
-  }
-}
-
-       await publishMessage({
-  message:  `🎬 Added predvd movies: ${result.added.movies}, Existing predvd movies: ${result.existing.movies}`
-});
-    
-
-  } catch (error) {
-    logger.error("Batch Movie Error:", error.response?.data || error.message);
-  }
-}
-
-export async function addShowsBatchToTrakt(shows) {
-  try {
-    const token = await getValidAccessToken();
-    const response = await axios.post(
-      "https://api.trakt.tv/users/wreath1553/lists/showother/items",
+      "https://api.trakt.tv/users/wreath1553/lists/showsenglish/items",
       { shows },
       {
         headers: {
@@ -337,10 +221,10 @@ export async function addShowsBatchToTrakt(shows) {
   }
 }
 
-export async function getShowListItems() {
+export async function getEnglishShowListItems() {
   const token = await getValidAccessToken();
   const response = await axios.get(
-    "https://api.trakt.tv/users/wreath1553/lists/showother/items",
+    "https://api.trakt.tv/users/wreath1553/lists/showsenglish/items",
     {
       headers: {
         "Content-Type": "application/json",
@@ -354,11 +238,11 @@ export async function getShowListItems() {
   return response.data;
 }
 
-export async function removeShowsFromList(showIds) {
+export async function removeEnglishShowsFromList(showIds) {
   try {
     const token = await getValidAccessToken();
     const response = await axios.post(
-      "https://api.trakt.tv/users/wreath1553/lists/showother/items/remove",
+      "https://api.trakt.tv/users/wreath1553/lists/showsenglish/items/remove",
       {
         shows: showIds.map(id => ({
           ids: { trakt: id }
@@ -380,8 +264,8 @@ export async function removeShowsFromList(showIds) {
     logger.error("Show delete error:", error.response?.data || error.message);
   }
 }
-export async function ensureShowListUnderLimit(incomingCount, limit = 80) {
-  const items = await getShowListItems();
+export async function ensureEnglishShowListUnderLimit(incomingCount, limit = 80) {
+  const items = await getEnglishShowListItems();
 
   const current = items.length;
   const space = limit - current;
@@ -404,6 +288,6 @@ console.log('⚠️ following shows  are removing from the list to stay under th
 });
   logger.info(`🗑 Removing ${ids.length} shows to stay under limit`);
 
-  await removeShowsFromList(ids);
+  await removeEnglishShowsFromList(ids);
 }
 

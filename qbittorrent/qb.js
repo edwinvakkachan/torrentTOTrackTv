@@ -34,3 +34,12 @@ export async function getTorrentsByCurrentDateTag() {
   return res.data;
 }
 
+export async function getpiratebayTorrentsByCurrentDateTag() {
+  const today = new Date().toISOString().split("T")[0];
+
+  const res = await qb.get("/api/v2/torrents/info", {
+    params: { tag: `piratebay.${today}` }
+  });
+
+  return res.data;
+}
