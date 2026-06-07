@@ -36,7 +36,7 @@ console.log('piratebay process started');
 
         
       if (!torrents) throw new Error("Failed to fetch torrents from piratebay");
-  
+   logger.info(`Today's torrent count: ${torrents.length}`);
       const movies = [];
       const shows = [];
 
