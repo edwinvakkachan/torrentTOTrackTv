@@ -1,5 +1,5 @@
 import { getpiratebayTorrentsByCurrentDateTag } from "./qbittorrent/qb.js";
-import { ensureEnglishListUnderLimit, addEnglishMoviesBatchToTrakt,ensureEnglishShowListUnderLimit,addEnglishShowsBatchToTrakt } from "./traklistpiratebay.js";
+import { ensureEnglishListUnderLimit, addEnglishMoviesBatchToTrakt,ensureEnglishShowListUnderLimit,addEnglishShowsBatchToTrakt,parseTitle } from "./traklistpiratebay.js";
 import logger from "./utils/logger.js";
 import { isUnmatched } from "./db/checkUnmatched.js";
 import { publishMessage } from "./queue/publishMessage.js";
