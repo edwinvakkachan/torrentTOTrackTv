@@ -27,7 +27,7 @@ async function safeExecute(fn, context) {
 export async function piratebay(){
     try {
     
-
+console.log('piratebay process started');
 
     const torrents = await safeExecute(
           () => getpiratebayTorrentsByCurrentDateTag(),

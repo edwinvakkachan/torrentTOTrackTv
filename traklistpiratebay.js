@@ -168,7 +168,6 @@ export async function addEnglishMoviesBatchToTrakt(movies) {
 }
 
 
-
 export async function addEnglishShowsBatchToTrakt(shows) {
   try {
     const token = await getValidAccessToken();

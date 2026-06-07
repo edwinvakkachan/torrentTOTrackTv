@@ -36,6 +36,8 @@ export async function getTorrentsByCurrentDateTag() {
 
 export async function getpiratebayTorrentsByCurrentDateTag() {
   const today = new Date().toISOString().split("T")[0];
+  
+  console.log("Searching tag:", `piratebay.${today}`);
 
   const res = await qb.get("/api/v2/torrents/info", {
     params: { tag: `piratebay.${today}` }
