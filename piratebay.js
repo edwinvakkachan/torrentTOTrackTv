@@ -76,7 +76,8 @@ for (const torrent of torrents) {
 
 console.log(`👽👽👽👽👽todays details 👽👽👽👽`);
 
-
+console.log('movie length:' ,movies.length);
+console.log('shows length:' ,shows.length)
 
 if(movies){
   for (const x of movies){
@@ -114,7 +115,6 @@ if(shows){
   });
   
   
-    process.exit(0)
 } catch (error) {
   console.error('error in processtodattag',error)
       await retry(
