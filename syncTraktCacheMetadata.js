@@ -6,7 +6,7 @@ export async function syncTraktCacheMetadata() {
   const result = await pool.query(`
     SELECT *
     FROM trakt_cache
-    WHERE trakt_id IS NULL
+    WHERE year IS NULL
     ORDER BY id
     LIMIT 100
   `);
@@ -31,7 +31,24 @@ export async function syncTraktCacheMetadata() {
         continue;
       }
 
-      const match = data[0];
+      let match = data[0];
+
+if (item.year) {
+
+  const yearMatch = data.find(x => {
+
+    const media =
+      item.trakt_type === "movie"
+        ? x.movie
+        : x.show;
+
+    return media.year === item.year;
+  });
+
+  if (yearMatch) {
+    match = yearMatch;
+  }
+}
 
       const media =
         item.trakt_type === "movie"
