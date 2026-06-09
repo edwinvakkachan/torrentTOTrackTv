@@ -1,5 +1,6 @@
 .env
-node_modules
+node_modules/
 db/query.js
 test.js
 logs/
+temp/

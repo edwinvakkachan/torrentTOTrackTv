@@ -12,6 +12,8 @@ findShowOnTrakt
  } from "./traktvlistprocessing.js";
 import { delay } from "./delay.js";
 
+import { syncTraktCacheMetadata } from "./syncTraktCacheMetadata.js";
+
 async function handleError(error, context = "Unknown") {
   console.error(`🔥 [${context}]`, error);
 
@@ -43,7 +45,8 @@ const movieResult = await pool.query(`
   FROM trakt_cache
   WHERE trakt_status = 'pending'
     AND list_name = 'Movie English'
-      ORDER BY id
+    AND year >= EXTRACT(YEAR FROM CURRENT_DATE) - 1
+  ORDER BY id
   LIMIT 40
 `);
 
@@ -52,7 +55,7 @@ const showResult = await pool.query(`
   FROM trakt_cache
   WHERE trakt_status = 'pending'
     AND list_name = 'showsEnglish'
-      ORDER BY id
+  ORDER BY id
   LIMIT 40
 `);
 
@@ -199,6 +202,8 @@ if (shows.length > 0) {
     await delay(500, true);
   }
 }
+
+await syncTraktCacheMetadata();
 
   logger.info('TrackTv piratebay  process completed Completed 🎉');
   
