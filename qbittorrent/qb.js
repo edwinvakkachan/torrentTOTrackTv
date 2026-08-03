@@ -1,5 +1,4 @@
 import axios from "axios";
-import logger from "../utils/logger.js";
 import { wrapper } from "axios-cookiejar-support";
 import { CookieJar } from "tough-cookie";
 import dotenv from "dotenv";
@@ -26,11 +25,14 @@ export async function loginQB() {
 export async function getTorrentsByCurrentDateTag() {
   const today = new Date().toISOString().split("T")[0];
 
+  return getTorrentsByTag(today);
+}
+
+export async function getTorrentsByTag(tag) {
   const res = await qb.get("/api/v2/torrents/info", {
-    params: { tag: today }
+    params: { tag }
   });
 
-  logger.info(`Scanning tag: ${today}`);
   return res.data;
 }
 

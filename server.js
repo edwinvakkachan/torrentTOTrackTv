@@ -1,22 +1,11 @@
-
-import logger from "./utils/logger.js";
 import { loginQB} from "./qbittorrent/qb.js";
 
-import { cleanupOldLogs } from "./utils/logCleanup.js";
 import { log } from "./timelog.js";
-
-import { callTrakt } from "./authfortrakt/trakt.js";
 import { publishMessage } from "./queue/publishMessage.js";
-import { processUpgrades } from "./predvdCleanup.js";
 import{initDB} from "./db/db.js"
 import { triggerHomeAssistantWebhookWhenErrorOccurs } from "./homeassistant/homeAssistantWebhook.js";
 import { retry } from "./homeassistant/retryWrapper.js";
-import { piratebay } from "./piratebay.js";
-import { traktv } from "./traktv.js";
-import { tamilrockers } from "./tamilrockers.js";
-/* ============================================================
-   CENTRALIZED ERROR HANDLER
-============================================================ */
+import { saveCurrentTaggedTorrents } from "./torrentCollector/currentTaggedTorrents.js";
 
 
 
@@ -36,18 +25,10 @@ try {
     message: '🚀 TrackTv process started'
   });
   
-  logger.info('🚀 TrackTv process started');
   await initDB()
   await log();
-  await cleanupOldLogs();
-  // await loginQB();
-  await callTrakt();
-  // await tamilrockers();
-  // await processUpgrades();
-  // await piratebay();
-  await traktv();
-
-  logger.info('TrackTv process completed Completed 🎉');
+  await loginQB();
+  await saveCurrentTaggedTorrents();
   
   await publishMessage({
     message: 'TrackTv process completed Completed 🎉'

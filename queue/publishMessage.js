@@ -1,4 +1,5 @@
 import pool from "../db/pool.js";
+import { getErrorDetails, getPostgresConnectionHint } from "../utils/errorDetails.js";
 
 export async function publishMessage({
   message,
@@ -27,7 +28,20 @@ export async function publishMessage({
      `,
      [sourceApp, eventType, payload, target, scheduledAt]
    );
- } catch (error) {
-  console.error('push message errror',error);
- }
+  } catch (error) {
+    console.error(
+      "Queue publish failed",
+      JSON.stringify(
+        {
+          ...getErrorDetails(error),
+          ...getPostgresConnectionHint(error),
+          sourceApp,
+          eventType,
+          target,
+        },
+        null,
+        2
+      )
+    );
+  }
 }

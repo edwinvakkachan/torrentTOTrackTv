@@ -1,5 +1,4 @@
 
-import logger from "./utils/logger.js";
 import { publishMessage } from "./queue/publishMessage.js";
 
 export async function log(message='⌚') {
@@ -13,5 +12,4 @@ export async function log(message='⌚') {
   message: `🕗 [${time}] ${message}`
 });
 
-  logger.info(`🕗 [${time}] ${message}`);
 }

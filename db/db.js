@@ -134,6 +134,60 @@ CREATE TABLE IF NOT EXISTS radarr_cleanup_queue (
 );
 `);
 
+await pool.query(`
+CREATE TABLE IF NOT EXISTS tagged_torrent_items (
+  id SERIAL PRIMARY KEY,
+
+  torrent_hash TEXT NOT NULL,
+  torrent_name TEXT NOT NULL,
+
+  movie_or_show_name TEXT NOT NULL,
+  year INTEGER,
+  audio_languages TEXT[] DEFAULT '{}',
+  tags TEXT[] NOT NULL DEFAULT '{}',
+
+  media_type TEXT NOT NULL
+    CHECK (media_type IN ('movie','tvshows','predvd')),
+
+  date_tag TEXT NOT NULL,
+  size_bytes BIGINT,
+
+  source TEXT NOT NULL DEFAULT 'qbittorrent',
+
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  UNIQUE(torrent_hash, date_tag)
+);
+
+CREATE INDEX IF NOT EXISTS idx_tagged_torrent_items_date_tag
+ON tagged_torrent_items(date_tag);
+
+CREATE INDEX IF NOT EXISTS idx_tagged_torrent_items_media_type
+ON tagged_torrent_items(media_type);
+`);
+
+await pool.query(`
+UPDATE tagged_torrent_items
+SET media_type = 'predvd'
+WHERE torrent_name ~* 'pre[[:space:]._-]*dvd';
+
+UPDATE tagged_torrent_items
+SET media_type = 'tvshows'
+WHERE media_type <> 'predvd'
+  AND (
+    media_type = 'show'
+    OR torrent_name ~* '(s[0-9]{1,2}[[:space:]]*e[0-9]{1,2}|s[0-9]{1,2}[[:space:]]*ep|season|episode|ep[[:space:]]*\\(?[0-9]{1,3})'
+  );
+
+ALTER TABLE tagged_torrent_items
+DROP CONSTRAINT IF EXISTS tagged_torrent_items_media_type_check;
+
+ALTER TABLE tagged_torrent_items
+ADD CONSTRAINT tagged_torrent_items_media_type_check
+CHECK (media_type IN ('movie','tvshows','predvd'));
+`);
+
 // await pool.query(`
 // CREATE INDEX IF NOT EXISTS idx_radarr_cleanup_status
 // ON radarr_cleanup_queue(status, created_at);

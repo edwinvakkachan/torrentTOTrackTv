@@ -1,5 +1,3 @@
-
-import logger from "../utils/logger.js";
 import pool from "./pool.js";
 
 
@@ -14,6 +12,6 @@ await db.query(
   [title, year, type]
 );
   } catch (err) {
-    logger.error("Unmatched insert error:", err.message);
+    console.error("Unmatched insert error:", err.message);
   }
 }
