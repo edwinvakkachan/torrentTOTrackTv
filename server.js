@@ -1,12 +1,11 @@
 import { loginQB} from "./qbittorrent/qb.js";
-
 import { log } from "./timelog.js";
 import { publishMessage } from "./queue/publishMessage.js";
 import{initDB} from "./db/db.js"
 import { triggerHomeAssistantWebhookWhenErrorOccurs } from "./homeassistant/homeAssistantWebhook.js";
 import { retry } from "./homeassistant/retryWrapper.js";
 import { saveCurrentTaggedTorrents } from "./torrentCollector/currentTaggedTorrents.js";
-
+import { getPendingMovieOrShowNames } from "./getPendingMovieOrShowNames/getPendingMovieOrShowNames.js";
 
 
 
@@ -29,6 +28,7 @@ try {
   await log();
   await loginQB();
   await saveCurrentTaggedTorrents();
+await getPendingMovieOrShowNames();
   
   await publishMessage({
     message: 'TrackTv process completed Completed 🎉'

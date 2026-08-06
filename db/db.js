@@ -54,15 +54,6 @@ ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP;
 `);
 
 
-// await pool.query(`
-// CREATE INDEX IF NOT EXISTS idx_trakt_status
-// ON trakt_review_queue(status)
-// `);
-
-// await pool.query(`
-// CREATE INDEX IF NOT EXISTS idx_trakt_created
-// ON trakt_review_queue(created_at DESC)
-// `);
 
 await pool.query(`
   CREATE TABLE IF NOT EXISTS app_logs (
@@ -187,12 +178,6 @@ ALTER TABLE tagged_torrent_items
 ADD CONSTRAINT tagged_torrent_items_media_type_check
 CHECK (media_type IN ('movie','tvshows','predvd'));
 `);
-
-// await pool.query(`
-// CREATE INDEX IF NOT EXISTS idx_radarr_cleanup_status
-// ON radarr_cleanup_queue(status, created_at);
-// `);
-
 
 
 
