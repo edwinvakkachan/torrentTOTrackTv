@@ -1,6 +1,8 @@
 import pool from "../db/pool.js";
 import { searchTMDB } from "../tmdb.js";
 import { updateTaggedTorrentMetadata,markMetadataNotFound } from "../metadataUpdater.js";
+import { publishMessage } from "../queue/publishMessage.js";
+import { delay } from "../delay.js";
 
 export async function getPendingMovieOrShowNames() {
   const { rows } = await pool.query(`
@@ -27,6 +29,10 @@ for (const row of rows) {
 
 if (!tmdb) {
     await markMetadataNotFound(row.id);
+    await delay(1000,true);
+ await publishMessage({
+    message: `No TMDb results found ${row.movie_or_show_name}`
+  });
     continue;
 }
 

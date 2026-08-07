@@ -21,8 +21,7 @@ export async function updateTaggedTorrentMetadata(id, metadata) {
     metadataStatus = "completed",
     title=null,
   } = metadata;
-// console.log('metadata is');
-// console.log(metadata)
+
 
   await pool.query(
     `
