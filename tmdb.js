@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { delay } from "./delay.js";
 dotenv.config();
 
 const TMDB_TOKEN = process.env.TMDB_READ_ACCESS_TOKEN;
@@ -30,6 +31,7 @@ export async function searchTMDB({ title, year, mediaType }) {
   };
 
   try {
+    await delay(1000,true);
     const response = await fetch(url, options);
 
 
