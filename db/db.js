@@ -180,7 +180,6 @@ CHECK (media_type IN ('movie','tvshows','predvd'));
 `);
 
 
-
   return pool;
 }
 
