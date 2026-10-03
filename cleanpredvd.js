@@ -1,5 +1,6 @@
 import "dotenv/config";
 import axios from "axios";
+import pool from "./db/pool.js";
 
 // ============================================================
 // ENVIRONMENT
@@ -7,8 +8,6 @@ import axios from "axios";
 
 const RADARR_URL = process.env.RADARR_URL;
 const RADARR_API_KEY = process.env.RADARR_API_KEY;
-
-const QBIT_URL = process.env.QBITIP;
 
 const PREDVD_TAG = "predvd";
 
@@ -24,13 +23,11 @@ if (!RADARR_API_KEY) {
     throw new Error("❌ RADARR_API_KEY is missing from .env");
 }
 
-if (!QBIT_URL) {
-    throw new Error("❌ QBIT_URL is missing from .env");
-}
-
-// Remove trailing slash
 const radarrUrl = RADARR_URL.replace(/\/+$/, "");
-const qbitUrl = QBIT_URL.replace(/\/+$/, "");
+
+const radarrHeaders = {
+    "X-Api-Key": RADARR_API_KEY
+};
 
 // ============================================================
 // NORMALIZE TITLE
@@ -43,7 +40,7 @@ function normalizeTitle(title) {
         // Remove video extensions
         .replace(/\.(mkv|mp4|avi|mov|m4v|ts)$/i, "")
 
-        // Remove website names
+        // Remove website prefixes
         .replace(/www\.[^\s]+/gi, "")
 
         // Replace separators
@@ -52,15 +49,6 @@ function normalizeTitle(title) {
         // Remove brackets
         .replace(/[\[\](){}]/g, " ")
 
-        // Remove release information
-        .replace(
-            /\b(2160p|1080p|720p|576p|480p|4k|web-dl|webdl|webrip|bluray|brrip|hdrip|hdtv|predvd|pre-dvd|x264|x265|hevc|avc|h264|h265|aac|ac3|ddp|dd|dts|tamil|malayalam|telugu|hindi|english|clean|hq)\b/gi,
-            " "
-        )
-
-        // Remove year
-        .replace(/\b(19|20)\d{2}\b/g, " ")
-
         // Collapse spaces
         .replace(/\s+/g, " ")
 
@@ -68,13 +56,15 @@ function normalizeTitle(title) {
 }
 
 // ============================================================
-// GET QBITTORRENT TORRENTS
+// GET RADARR TAGS
 // ============================================================
 
-async function getQbitTorrents() {
+async function getRadarrTags() {
+
     const response = await axios.get(
-        `${qbitUrl}/api/v2/torrents/info`,
+        `${radarrUrl}/api/v3/tag`,
         {
+            headers: radarrHeaders,
             timeout: 20000
         }
     );
@@ -83,21 +73,31 @@ async function getQbitTorrents() {
 }
 
 // ============================================================
-// GET RADARR TAGS
+// FIND PREDVD TAG ID
 // ============================================================
 
-async function getRadarrTags() {
-    const response = await axios.get(
-        `${radarrUrl}/api/v3/tag`,
-        {
-            headers: {
-                "X-Api-Key": RADARR_API_KEY
-            },
-            timeout: 20000
-        }
+async function getPreDVDTagId() {
+
+    const tags = await getRadarrTags();
+
+    const predvdTag = tags.find(
+        tag =>
+            String(tag.label || "")
+                .trim()
+                .toLowerCase() === PREDVD_TAG
     );
 
-    return response.data || [];
+    if (!predvdTag) {
+        throw new Error(
+            `Radarr tag "${PREDVD_TAG}" was not found`
+        );
+    }
+
+    console.log(
+        `🏷️ Radarr PreDVD tag: ${predvdTag.label} (ID: ${predvdTag.id})`
+    );
+
+    return predvdTag.id;
 }
 
 // ============================================================
@@ -105,12 +105,11 @@ async function getRadarrTags() {
 // ============================================================
 
 async function getRadarrMovies() {
+
     const response = await axios.get(
         `${radarrUrl}/api/v3/movie`,
         {
-            headers: {
-                "X-Api-Key": RADARR_API_KEY
-            },
+            headers: radarrHeaders,
             timeout: 30000
         }
     );
@@ -119,27 +118,24 @@ async function getRadarrMovies() {
 }
 
 // ============================================================
-// CHECK QBIT TORRENT IS PREDVD
+// GET QUEUED CLEANUP MOVIES
 // ============================================================
 
-function isPreDVDTorrent(torrent) {
-    const category = String(
-        torrent.category || ""
-    )
-        .trim()
-        .toLowerCase();
+async function getCleanupQueue() {
 
-    const tags = String(
-        torrent.tags || ""
-    )
-        .split(",")
-        .map(tag => tag.trim().toLowerCase())
-        .filter(Boolean);
+    const result = await pool.query(`
+        SELECT
+            id,
+            title,
+            year,
+            processed,
+            created_at
+        FROM public.radarr_cleanup_queue
+        WHERE processed = false
+        ORDER BY created_at ASC
+    `);
 
-    return (
-        category === PREDVD_TAG ||
-        tags.includes(PREDVD_TAG)
-    );
+    return result.rows;
 }
 
 // ============================================================
@@ -147,92 +143,145 @@ function isPreDVDTorrent(torrent) {
 // ============================================================
 
 function isPreDVDMovie(movie, predvdTagId) {
-    return (
-        Array.isArray(movie.tags) &&
-        movie.tags.includes(predvdTagId)
+
+    if (!Array.isArray(movie.tags)) {
+        return false;
+    }
+
+    return movie.tags.some(
+        tag => Number(tag) === Number(predvdTagId)
     );
 }
 
 // ============================================================
-// FIND MATCHING RADARR PREDVD MOVIE
+// FIND RADARR MOVIE
+//
+// IMPORTANT:
+// Match BOTH title AND year.
+//
+// Only movies having the "predvd" tag are considered.
 // ============================================================
 
-function findMatchingPreDVDMovie(
-    torrent,
-    predvdMovies
+function findMatchingRadarrMovie(
+    queueItem,
+    radarrMovies,
+    predvdTagId
 ) {
-    const torrentTitle = normalizeTitle(torrent.name);
 
-    if (!torrentTitle) {
+    const queueTitle =
+        normalizeTitle(queueItem.title);
+
+    const queueYear =
+        Number(queueItem.year);
+
+    if (!queueTitle || !queueYear) {
         return null;
     }
 
-    for (const movie of predvdMovies) {
+    const predvdMovies = radarrMovies.filter(
+        movie =>
+            isPreDVDMovie(movie, predvdTagId)
+    );
 
-        const radarrTitle = normalizeTitle(
-            movie.title
+    console.log(
+        `   Radarr PreDVD movies available: ${predvdMovies.length}`
+    );
+
+    // --------------------------------------------------------
+    // First: exact title + exact year
+    // --------------------------------------------------------
+
+    const exactMatches = predvdMovies.filter(
+        movie => {
+
+            const radarrTitle =
+                normalizeTitle(movie.title);
+
+            const radarrYear =
+                Number(movie.year);
+
+            return (
+                radarrTitle === queueTitle &&
+                radarrYear === queueYear
+            );
+        }
+    );
+
+    if (exactMatches.length === 1) {
+        return exactMatches[0];
+    }
+
+    // Multiple exact matches is unsafe
+    if (exactMatches.length > 1) {
+
+        console.log(
+            `⚠️ Multiple exact Radarr matches found for ${queueItem.title} (${queueItem.year})`
         );
 
-        if (!radarrTitle) {
-            continue;
+        for (const movie of exactMatches) {
+            console.log(
+                `   - ${movie.title} (${movie.year}) ID=${movie.id}`
+            );
         }
 
-        // Exact match
-        if (torrentTitle === radarrTitle) {
-            return movie;
+        return null;
+    }
+
+    // --------------------------------------------------------
+    // Second: contained title + exact year
+    //
+    // Example:
+    //
+    // Queue:       Toxic
+    // Radarr:      Toxic: A Fairy Tale for Grown-Ups
+    //
+    // Only used if exact match failed.
+    // --------------------------------------------------------
+
+    const partialMatches = predvdMovies.filter(
+        movie => {
+
+            const radarrTitle =
+                normalizeTitle(movie.title);
+
+            const radarrYear =
+                Number(movie.year);
+
+            if (radarrYear !== queueYear) {
+                return false;
+            }
+
+            return (
+                radarrTitle.includes(queueTitle) ||
+                queueTitle.includes(radarrTitle)
+            );
+        }
+    );
+
+    if (partialMatches.length === 1) {
+        return partialMatches[0];
+    }
+
+    if (partialMatches.length > 1) {
+
+        console.log(
+            `⚠️ Multiple partial Radarr matches found for ${queueItem.title} (${queueItem.year})`
+        );
+
+        for (const movie of partialMatches) {
+            console.log(
+                `   - ${movie.title} (${movie.year}) ID=${movie.id}`
+            );
         }
 
-        // qBit contains Radarr title
-        if (torrentTitle.includes(radarrTitle)) {
-            return movie;
-        }
-
-        // Radarr contains qBit title
-        if (radarrTitle.includes(torrentTitle)) {
-            return movie;
-        }
+        return null;
     }
 
     return null;
 }
 
 // ============================================================
-// FIND PREDVD QBIT TORRENTS FOR MOVIE
-// ============================================================
-
-function findPreDVDTorrents(
-    torrents,
-    movie
-) {
-    const movieTitle = normalizeTitle(
-        movie.title
-    );
-
-    return torrents.filter(torrent => {
-
-        // Must be PreDVD
-        if (!isPreDVDTorrent(torrent)) {
-            return false;
-        }
-
-        const torrentTitle = normalizeTitle(
-            torrent.name
-        );
-
-        if (!torrentTitle) {
-            return false;
-        }
-
-        return (
-            torrentTitle === movieTitle ||
-            torrentTitle.includes(movieTitle) ||
-            movieTitle.includes(torrentTitle)
-        );
-    });
-}
-
-// ============================================================
-// DELETE MOVIE FROM RADARR + FILES
+// DELETE RADARR MOVIE + FILES
 // ============================================================
 
 async function deleteRadarrMovie(movie) {
@@ -240,6 +289,7 @@ async function deleteRadarrMovie(movie) {
     console.log("");
     console.log("🗑️ Deleting PreDVD movie from Radarr...");
     console.log(`   Movie : ${movie.title}`);
+    console.log(`   Year  : ${movie.year}`);
     console.log(`   ID    : ${movie.id}`);
     console.log(`   Path  : ${movie.path}`);
 
@@ -250,63 +300,36 @@ async function deleteRadarrMovie(movie) {
                 deleteFiles: true,
                 addImportExclusion: false
             },
-            headers: {
-                "X-Api-Key": RADARR_API_KEY
-            },
+
+            headers: radarrHeaders,
+
             timeout: 30000
         }
     );
 
     console.log(
-        "✅ Radarr movie deleted"
+        `✅ Deleted "${movie.title}" from Radarr`
     );
 
     console.log(
-        "✅ Radarr movie files deleted"
+        `✅ Radarr movie files deleted`
     );
 }
 
 // ============================================================
-// DELETE QBITTORRENT + FILES
+// MARK QUEUE ITEM PROCESSED
 // ============================================================
 
-async function deleteQbitTorrent(torrent) {
+async function markQueueProcessed(queueId) {
 
-    console.log("");
-    console.log("🗑️ Deleting PreDVD torrent...");
-    console.log(`   Name : ${torrent.name}`);
-    console.log(`   Hash : ${torrent.hash}`);
-
-    const body = new URLSearchParams();
-
-    body.append(
-        "hashes",
-        torrent.hash
-    );
-
-    body.append(
-        "deleteFiles",
-        "true"
-    );
-
-    await axios.post(
-        `${qbitUrl}/api/v2/torrents/delete`,
-        body,
-        {
-            headers: {
-                "Content-Type":
-                    "application/x-www-form-urlencoded"
-            },
-            timeout: 30000
-        }
-    );
-
-    console.log(
-        "✅ qBittorrent torrent deleted"
-    );
-
-    console.log(
-        "✅ qBittorrent files deleted"
+    await pool.query(
+        `
+        UPDATE public.radarr_cleanup_queue
+        SET
+            processed = true
+        WHERE id = $1
+        `,
+        [queueId]
     );
 }
 
@@ -314,192 +337,193 @@ async function deleteQbitTorrent(torrent) {
 // MAIN CLEANUP FUNCTION
 // ============================================================
 
-export async function cleanupPreDVDFromQbit() {
+export async function cleanupPreDVDFromRadarr() {
 
     console.log("");
     console.log("=================================================");
-    console.log("🧹 PreDVD CLEANUP");
+    console.log("🧹 RADARR PRE-DVD CLEANUP");
     console.log("=================================================");
+
+    let processedCount = 0;
+    let deletedCount = 0;
+    let notFoundCount = 0;
+    let skippedCount = 0;
+    let failedCount = 0;
 
     try {
 
-        // --------------------------------------------------------
-        // GET QBIT TORRENTS
-        // --------------------------------------------------------
+        // ====================================================
+        // 1. GET QUEUE
+        // ====================================================
 
         console.log("");
-        console.log("📥 Reading torrents from qBittorrent...");
+        console.log("📥 Reading radarr_cleanup_queue...");
 
-        const torrents = await getQbitTorrents();
+        const queue =
+            await getCleanupQueue();
 
         console.log(
-            `   Found ${torrents.length} torrents`
+            `   Pending queue items: ${queue.length}`
         );
 
-        // --------------------------------------------------------
-        // GET RADARR TAGS
-        // --------------------------------------------------------
+        if (!queue.length) {
+
+            console.log(
+                "ℹ️ No pending Radarr cleanup items"
+            );
+
+            return;
+        }
+
+        // ====================================================
+        // 2. GET RADARR PREDVD TAG
+        // ====================================================
 
         console.log("");
         console.log("🏷️ Reading Radarr tags...");
 
-        const tags = await getRadarrTags();
+        const predvdTagId =
+            await getPreDVDTagId();
 
-        const predvdTag = tags.find(
-            tag =>
-                String(tag.label || "")
-                    .trim()
-                    .toLowerCase() === PREDVD_TAG
-        );
-
-        if (!predvdTag) {
-
-            console.log(
-                `❌ Radarr tag "${PREDVD_TAG}" was not found`
-            );
-
-            return;
-        }
-
-        console.log(
-            `   PreDVD tag ID: ${predvdTag.id}`
-        );
-
-        // --------------------------------------------------------
-        // GET RADARR MOVIES
-        // --------------------------------------------------------
+        // ====================================================
+        // 3. GET RADARR MOVIES
+        // ====================================================
 
         console.log("");
-        console.log("🎬 Reading Radarr movies...");
+        console.log("🎬 Reading movies from Radarr...");
 
-        const movies = await getRadarrMovies();
-
-        console.log(
-            `   Found ${movies.length} movies`
-        );
-
-        // --------------------------------------------------------
-        // ONLY PREDVD RADARR MOVIES
-        // --------------------------------------------------------
-
-        const predvdMovies = movies.filter(
-            movie =>
-                isPreDVDMovie(
-                    movie,
-                    predvdTag.id
-                )
-        );
+        const radarrMovies =
+            await getRadarrMovies();
 
         console.log(
-            `   PreDVD movies: ${predvdMovies.length}`
+            `   Total Radarr movies: ${radarrMovies.length}`
         );
 
-        if (!predvdMovies.length) {
-
-            console.log(
-                "ℹ️ No PreDVD movies found in Radarr"
+        const predvdMovies =
+            radarrMovies.filter(
+                movie =>
+                    isPreDVDMovie(
+                        movie,
+                        predvdTagId
+                    )
             );
 
-            return;
-        }
+        console.log(
+            `   Movies with "${PREDVD_TAG}" tag: ${predvdMovies.length}`
+        );
 
-        // --------------------------------------------------------
-        // PROCESS QBIT TORRENTS
-        // --------------------------------------------------------
+        // ====================================================
+        // 4. PROCESS QUEUE
+        // ====================================================
 
-        console.log("");
-        console.log("🔎 Checking qBittorrent torrents...");
+        for (const queueItem of queue) {
 
-        let matchedCount = 0;
+            console.log("");
+            console.log("-----------------------------------------------");
 
-        for (const torrent of torrents) {
+            console.log(
+                `🎯 Queue item: ${queueItem.title} (${queueItem.year})`
+            );
 
-            // ----------------------------------------------------
-            // IMPORTANT:
-            // Ignore PreDVD torrent itself.
-            //
-            // We are looking for a NEW torrent that replaces
-            // an existing PreDVD movie.
-            // ----------------------------------------------------
+            console.log(
+                `   Queue ID: ${queueItem.id}`
+            );
 
-            if (isPreDVDTorrent(torrent)) {
+            // ------------------------------------------------
+            // Find matching Radarr movie
+            // ------------------------------------------------
 
-                console.log(
-                    `⏭️ Skipping PreDVD torrent: ${torrent.name}`
+            const movie =
+                findMatchingRadarrMovie(
+                    queueItem,
+                    radarrMovies,
+                    predvdTagId
                 );
 
-                continue;
-            }
+            if (!movie) {
 
-            const normalizedTorrentTitle =
-                normalizeTitle(torrent.name);
+                console.log(
+                    `⚠️ No matching PreDVD movie found in Radarr`
+                );
 
-            if (!normalizedTorrentTitle) {
+                /*
+                 * IMPORTANT:
+                 *
+                 * Do NOT mark the queue item processed.
+                 *
+                 * It may appear in Radarr later.
+                 */
+
+                notFoundCount++;
+
                 continue;
             }
 
             console.log("");
+            console.log("🎯 RADARR MATCH FOUND");
+
             console.log(
-                `🔍 Checking: ${torrent.name}`
+                `   Queue : ${queueItem.title} (${queueItem.year})`
             );
 
-            const matchedMovie =
-                findMatchingPreDVDMovie(
-                    torrent,
-                    predvdMovies
-                );
+            console.log(
+                `   Radarr: ${movie.title} (${movie.year})`
+            );
 
-            if (!matchedMovie) {
+            console.log(
+                `   ID    : ${movie.id}`
+            );
+
+            console.log(
+                `   Path  : ${movie.path}`
+            );
+
+            // ------------------------------------------------
+            // Verify PreDVD tag AGAIN before deletion
+            // ------------------------------------------------
+
+            if (!isPreDVDMovie(movie, predvdTagId)) {
 
                 console.log(
-                    "   ↳ No PreDVD match"
+                    `🛑 Safety check failed: movie does not have "${PREDVD_TAG}" tag`
                 );
+
+                skippedCount++;
 
                 continue;
             }
 
-            matchedCount++;
-
-            console.log("");
-            console.log("🎯 MATCH FOUND");
-            console.log(
-                `   New torrent : ${torrent.name}`
-            );
-            console.log(
-                `   PreDVD movie: ${matchedMovie.title}`
-            );
-            console.log(
-                `   Radarr ID   : ${matchedMovie.id}`
-            );
-
-            // ----------------------------------------------------
-            // FIND PREDVD TORRENTS
-            // ----------------------------------------------------
-
-            const predvdTorrents =
-                findPreDVDTorrents(
-                    torrents,
-                    matchedMovie
-                );
-
-            console.log(
-                `   PreDVD qBit torrents: ${predvdTorrents.length}`
-            );
-
-            // ----------------------------------------------------
-            // DELETE RADARR MOVIE FIRST
-            // ----------------------------------------------------
+            // ------------------------------------------------
+            // DELETE MOVIE
+            // ------------------------------------------------
 
             try {
 
-                await deleteRadarrMovie(
-                    matchedMovie
+                await deleteRadarrMovie(movie);
+
+                deletedCount++;
+
+                // --------------------------------------------
+                // Mark queue item processed ONLY after
+                // successful Radarr deletion
+                // --------------------------------------------
+
+                await markQueueProcessed(
+                    queueItem.id
+                );
+
+                processedCount++;
+
+                console.log(
+                    `✅ Queue item marked processed`
                 );
 
             } catch (error) {
 
+                failedCount++;
+
                 console.error(
-                    "❌ Radarr deletion failed"
+                    `❌ Failed to delete ${movie.title}`
                 );
 
                 console.error(
@@ -507,51 +531,47 @@ export async function cleanupPreDVDFromQbit() {
                     error.message
                 );
 
-                // Do NOT delete qBit files
-                // if Radarr deletion failed.
-                continue;
-            }
-
-            // ----------------------------------------------------
-            // DELETE PREDVD QBIT TORRENTS
-            // ----------------------------------------------------
-
-            for (
-                const predvdTorrent
-                of predvdTorrents
-            ) {
-
-                try {
-
-                    await deleteQbitTorrent(
-                        predvdTorrent
-                    );
-
-                } catch (error) {
-
-                    console.error(
-                        `❌ qBittorrent deletion failed: ${predvdTorrent.name}`
-                    );
-
-                    console.error(
-                        error.response?.data ||
-                        error.message
-                    );
-                }
+                /*
+                 * Do NOT mark processed.
+                 *
+                 * It will be retried on the next run.
+                 */
             }
         }
 
-        // --------------------------------------------------------
+        // ====================================================
         // SUMMARY
-        // --------------------------------------------------------
+        // ====================================================
 
         console.log("");
         console.log("=================================================");
-        console.log("✅ PreDVD CLEANUP FINISHED");
+        console.log("✅ RADARR PRE-DVD CLEANUP FINISHED");
         console.log("=================================================");
+
         console.log(
-            `🎯 Matches found: ${matchedCount}`
+            `📋 Queue items       : ${queue.length}`
         );
+
+        console.log(
+            `🗑️ Movies deleted    : ${deletedCount}`
+        );
+
+        console.log(
+            `✅ Marked processed  : ${processedCount}`
+        );
+
+        console.log(
+            `🔎 Not found         : ${notFoundCount}`
+        );
+
+        console.log(
+            `⏭️ Skipped           : ${skippedCount}`
+        );
+
+        console.log(
+            `❌ Failed            : ${failedCount}`
+        );
+
         console.log("=================================================");
         console.log("");
 
@@ -559,7 +579,7 @@ export async function cleanupPreDVDFromQbit() {
 
         console.error("");
         console.error(
-            "❌ PreDVD cleanup failed"
+            "❌ Radarr PreDVD cleanup failed"
         );
 
         console.error(
@@ -568,5 +588,30 @@ export async function cleanupPreDVDFromQbit() {
         );
 
         console.error("");
+    }
+}
+
+// ============================================================
+// OPTIONAL DIRECT EXECUTION
+// ============================================================
+//
+// If this file is executed directly:
+//     node cleanpredvd.js
+//
+// it will run the cleanup automatically.
+//
+// Remove this section if another script imports and calls
+// cleanupPreDVDFromRadarr().
+// ============================================================
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+
+    try {
+
+        await cleanupPreDVDFromRadarr();
+
+    } finally {
+
+        await pool.end();
     }
 }
