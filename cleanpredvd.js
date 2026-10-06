@@ -1,6 +1,7 @@
 import "dotenv/config";
 import axios from "axios";
 import pool from "./db/pool.js";
+import { saveRadarrMovieToTaggedTorrentItems } from "./taggedTorrentItems.js";
 
 // ============================================================
 // ENVIRONMENT
@@ -499,6 +500,17 @@ export async function cleanupPreDVDFromRadarr() {
 
             try {
 
+                    console.log("");
+    console.log("💾 Preparing database record before Radarr deletion...");
+
+    // IMPORTANT:
+    // Save the Radarr movie FIRST.
+    // If this fails, the movie will NOT be deleted.
+    await saveRadarrMovieToTaggedTorrentItems(movie);
+
+    // ------------------------------------------------
+    // DELETE MOVIE ONLY AFTER DATABASE INSERT SUCCEEDS
+    // ------------------------------------------------
                 await deleteRadarrMovie(movie);
 
                 deletedCount++;
