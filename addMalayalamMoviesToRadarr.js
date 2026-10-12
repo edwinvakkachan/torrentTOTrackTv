@@ -1,5 +1,6 @@
 import axios from "axios";
 import pool from "./db/pool.js";
+import { delay } from "./delay.js";
 
 
 export async function addMalayalamMoviesToRadarr() {
@@ -59,6 +60,7 @@ if (movie.media_type === "predvd") {
 } else {
   rootFolderPath = process.env.RADARR_ROOT_FOLDER;
 }
+await delay(500,true);
 
       await axios.post(
         `${process.env.RADARR_URL}/api/v3/movie`,

@@ -1,7 +1,7 @@
 import pool from "../db/pool.js";
 import { getTorrentsByTag } from "../qbittorrent/qb.js";
 
-const REQUIRED_TAGS = ["script"];
+const REQUIRED_TAGS = [];
 
 const LANGUAGE_PATTERNS = [
   ["Malayalam", /\b(malayalam|mal)\b/i],

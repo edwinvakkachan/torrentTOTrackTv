@@ -10,6 +10,8 @@ import { addMalayalamMoviesToRadarr } from "./addMalayalamMoviesToRadarr.js";
 import { clearOldTaggedTorrentItems } from "./clearOldTaggedTorrentItems.js";
 import { addTVSHowsToSonarr } from "./addTVSHowsToSonarr.js";
 import { delay } from "./delay.js";
+import {cleanupPreDVDFromRadarr} from "./cleanpredvd.js"
+
 /* ============================================================
    MAIN WORKFLOW
 ============================================================ */
@@ -29,6 +31,8 @@ await initDB()
 await log();
 await loginQB();
 await delay(2000,true);
+await cleanupPreDVDFromRadarr();
+await delay(10000,true);
 await saveCurrentTaggedTorrents();
 await delay(1000,true);
 await getPendingMovieOrShowNames();
